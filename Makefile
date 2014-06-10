@@ -20,8 +20,8 @@ all: $(OBJECTS) $(HEADERS)
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(CPPEXT)
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p bin
-	@echo "$(CC) $(CFLAGS) $(SOURCES) -c -o $@ $<"
-	@$(CC) $(CFLAGS) $(SOURCES) -c -o $@ $<
+	@echo "$(CC) $(CFLAGS) $(SOURCES) -c -o $@"
+	@$(CC) $(CFLAGS) $(SOURCES) -c -o $@
 
 clean:
 	rm -fr $(BUILDDIR) $(BIN)

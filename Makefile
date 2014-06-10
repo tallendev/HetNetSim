@@ -6,6 +6,7 @@ HEXT=h
 OBJEXT=o
 SRCDIR=src
 TARGET=bin/run
+BIN=bin
 BUILDDIR=build
 
 SOURCES=$(shell find $(SRCDIR) -type f -name *.$(CPPEXT))
@@ -18,11 +19,12 @@ all: $(OBJECTS) $(HEADERS)
 
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(CPPEXT)
 	@mkdir -p $(BUILDDIR)
+	@mkdir -p bin
 	@echo "$(CC) $(CFLAGS) $(SOURCES) -c -o $@ $<"
 	@$(CC) $(CFLAGS) $(SOURCES) -c -o $@ $<
 
 clean:
-	rm $(BUILDDIR)/* $(TARGET)
+	rm -fr $(BUILDDIR) $(BIN)
 
 #.c.o: $<
 #	-gcc -c $(CFLAGS) $(DEBUG) -g $< 2> $(@:.o=.err)

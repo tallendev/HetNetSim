@@ -12,6 +12,7 @@
 
 #ifndef SOLVER_H
 #define SOLVER_H
+#include "LinearProgram.h"
 #include "LPSolution.h"
 
 
@@ -25,13 +26,20 @@ class Solver
         Solver& operator=(Solver const& copy);
 
     public:
+    /**
+     * Returns a static instance of Solver object. This allows the Solver to be
+     * created only when needed (lazy), automatically allocated/deallocated, and 
+     * is key in the implementation of the Singleton Pattern.
+     *
+     * Return: Returns the sole instance of the Solver class.
+     */
         static Solver& getInstance()
         {
             static Solver solver;
             return solver;
         }
 
-        LPSolution& SimplexSolve();
+        LPSolution& SimplexSolve(LinearProgram& lp);
 };
 
 #endif

@@ -10,15 +10,10 @@
 
 #include "Solver.h"
 
-
 /**
- * Returns a static instance of Solver object. This allows the Solver to be
- * created only when needed (lazy), automatically allocated/deallocated, and 
- * is key in the implementation of the Singleton Pattern.
- *
- * Return: Returns the sole instance of the Solver class.
+ * Implementation of classic simplex method to solving linear programs. 
  */
-LPSolution& Solver::SimplexSolve()
+LPSolution& Solver::SimplexSolve(LinearProgram& lp)
 {
     //TODO: implement me
     static LPSolution sol; //created to make compile...

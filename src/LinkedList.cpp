@@ -8,31 +8,6 @@
 
 #include "LinkedList.h"
 
-/**
- * Default constructor for an empty list.
- */
-template <typename T> LinkedList<T>::LinkedList()
-{
-    head = NULL;
-    tail = NULL;
-}
-
-/**
- * Add an item to the linked list.
- * Param: item - The data to be stored in the node.
- */
-template <typename T> void LinkedList<T>::add(T item)
-{
-    if (head == NULL)
-    {
-        head = new Node(item);
-        tail = head;
-    }
-    else
-    {
-        tail.setNext(new Node(item));
-    }
-}
 
 /**
  * Deconstructor for linked list. Frees all data associated with nodes. Does 
@@ -54,9 +29,9 @@ template <typename T> LinkedList<T>::~LinkedList()
  */ 
 template <typename T> void LinkedList<T>::freeNode(Node* node)
 {
-    if (node.getNext())
+    if (node->getNext())
     {
-        freeNode(node.getNext());
+        freeNode(node->getNext());
     }
     delete node;
 }

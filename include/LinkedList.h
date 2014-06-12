@@ -52,4 +52,6 @@ template <typename T> class LinkedList
         ~LinkedList();
 };
 
+#include "LinkedList.inl"
+
 #endif

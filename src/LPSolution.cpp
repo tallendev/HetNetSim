@@ -15,5 +15,5 @@
  */
 LPSolution::LPSolution()
 {
-
+    
 }

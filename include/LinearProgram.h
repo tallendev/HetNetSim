@@ -7,6 +7,7 @@
 #ifndef LINEARPROGRAM_H
 #define LINEARPROGRAM_H
 
+#include <string>
 #include "LinkedList.h"
 
 class LinearProgram
@@ -19,6 +20,8 @@ class LinearProgram
         LinearProgram(std::string equation);
         void addConstraint(std::string constraint);
         
-}
+};
+
+#include "LinearProgram.inl"
 
 #endif

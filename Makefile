@@ -1,6 +1,6 @@
 CC=g++
 # CC=clang
-CFLAGS=-Wall -Wextra -Wconversion -g #$(AA)
+CFLAGS=-Wall -Wextra -Wconversion -g #-std=gnu++11
 CPPEXT=cpp
 HEXT=h
 OBJEXT=o

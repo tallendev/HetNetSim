@@ -8,20 +8,26 @@ SRCDIR=src
 TARGET=bin/run
 BIN=bin
 BUILDDIR=build
+HEADERDIR=include
+INCLUDE=-I./$(HEADERDIR)
 
 SOURCES=$(shell find $(SRCDIR) -type f -name *.$(CPPEXT))
-HEADERS=$(shell find $(SRCDIR) -type f -name *.$(HEXT)) 
+HEADERS=$(shell find $(HEADERDIR) -type f -name *.$(HEXT)) 
 OBJECTS=$(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(CPPEXT)=.$(OBJEXT)))
 
 all: $(OBJECTS) $(HEADERS)
 	@echo "Sources: $(shell find $(SRCDIR) -type f -name *.$(CPPEXT))"
-	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET)
+	$(CC) $(INCLUDE) $(CFLAGS) $(SOURCES) -o $(TARGET)
+
+clang: $(OBJECTS) $(HEADERS)
+	@echo "Sources: $(shell find $(SRCDIR) -type f -name *.$(CPPEXT))"
+	clang $(INCLUDE) $(CFLAGS) $(SOURCES) -o $(TARGET)
 
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(CPPEXT)
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p bin
-	@echo "$(CC) $(CFLAGS) $(SOURCES) -c -o $@"
-	@$(CC) $(CFLAGS) $(SOURCES) -c -o $@
+	@echo "$(CC) $(CFLAGS) $(INCLUDE) $(SOURCES) -c -o $@"
+	-$(CC) $(INCLUDE) -c $(CFLAGS) $< -o $@
 
 clean:
 	rm -fr $(BUILDDIR) $(BIN)

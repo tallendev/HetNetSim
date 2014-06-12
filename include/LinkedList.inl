@@ -18,6 +18,7 @@ template <typename T> LinkedList<T>::LinkedList()
 {
     head = NULL;
     tail = NULL;
+    size = 0;
 }
 
 /**
@@ -35,6 +36,24 @@ template <typename T> void LinkedList<T>::add(T item)
     {
         tail->setNext(new Node(item));
     }
+    size++;
+}
+
+/**
+ * Retrieve element from index specified. You MUST verify index is smaller 
+ * than size, or behavior is undefined.
+ * TODO: could be more efficient if tail pointer was made use of.
+ *
+ * Param: index - the index from which to retreive an element.
+ */
+template <typename T> T LinkedList<T>::get(int index)
+{
+    Node* node = head;
+    for (int i = 1; i < index; i++)
+    {
+        node = node->next;
+    }
+    return node->getData();
 }
 
 #endif

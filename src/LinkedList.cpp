@@ -46,6 +46,12 @@ template <typename T> LinkedList<T>::Node::Node (T data)
     Node (data, NULL);
 }
 
+template <typename T> int LinkedList<T>::getSize()
+{
+    return size;
+}
+
+
 /**
  * Constructor for node. Initializes the data and next fields.
  *

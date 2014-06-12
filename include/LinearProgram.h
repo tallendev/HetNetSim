@@ -19,6 +19,7 @@ class LinearProgram
     public:
         LinearProgram(std::string equation);
         void addConstraint(std::string constraint);
+        std::string getEquation();
         
 };
 

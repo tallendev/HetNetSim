@@ -5,6 +5,9 @@
  * Version: 06/12/2014
  * Author: Tyler Allen
  * Author: Matthew Leads
+ *
+ * TODO: We should implement an iterator inner class so that this guy can safely
+ * and efficiently be iterated over.
  */
 
 #ifndef LINKEDLIST_H
@@ -25,6 +28,8 @@ template <typename T> class LinkedList
         Node* head;
         /** Tail of the linked list for quick adds. */
         Node* tail;
+        /** Current size of the linked list. */
+        int size;
         
         void freeNode(Node* node);
         
@@ -49,6 +54,8 @@ template <typename T> class LinkedList
     public:
         LinkedList();
         void add(T item);
+        int getSize();
+        T get(int index);
         ~LinkedList();
 };
 

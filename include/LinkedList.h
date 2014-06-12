@@ -6,8 +6,6 @@
  * Author: Tyler Allen
  * Author: Matthew Leads
  *
- * TODO: We should implement an iterator inner class so that this guy can safely
- * and efficiently be iterated over.
  */
 
 #ifndef LINKEDLIST_H
@@ -51,11 +49,22 @@ template <typename T> class LinkedList
                 virtual Node* getNext();
                 virtual void setNext(Node* next);
         };
+
+        class ListIterator
+        {
+            private:
+                Node* current;
+            public:
+                ListIterator(LinkedList* list);
+                bool hasNext();
+                T next();
+        };
     public:
         LinkedList();
         void add(T item);
         int getSize();
         T get(int index);
+        ListIterator iterator();
         ~LinkedList();
 };
 

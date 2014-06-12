@@ -102,3 +102,42 @@ template <typename T> void LinkedList<T>::Node::setNext (Node* newNext)
 {
     newNext = next;
 }
+
+/**
+ * Constructor for list iterator.
+ */
+template <typename T> LinkedList<T>::ListIterator::ListIterator(LinkedList* list)
+{
+    current = list->head;
+}
+
+/**
+ * Checks if there is a "next" element. Call this before calling next.
+ *
+ * Return: True if next() is a valid call. False if not.
+ */
+template <typename T> bool LinkedList<T>::ListIterator::hasNext()
+{
+    return (bool) current;
+}
+
+/**
+ * Returns next element. Call hasNext() first. The behavior of this while 
+ * hasNext() is false is undefined.
+ *
+ * Return: The next element in the list.
+ */
+template <typename T> T LinkedList<T>::ListIterator::next()
+{
+    T data = current->getData();
+    current = current->next;
+    return data;
+}
+
+/**
+ * Returns an iterator over this list.
+ */
+template <typename T> typename LinkedList<T>::ListIterator LinkedList<T>::iterator()
+{
+    return ListIterator(this);
+}

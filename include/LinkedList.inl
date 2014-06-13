@@ -41,20 +41,31 @@ template <typename T> void LinkedList<T>::add(T item)
 }
 
 /**
- * Retrieve element from index specified. You MUST verify index is smaller 
- * than size, or behavior is undefined.
- * TODO: could be more efficient if tail pointer was made use of.
+ * Retrieve element from index specified.
+ * If index < 0 or index >= size, it returns an item of type T.
  *
- * Param: index - the index from which to retreive an element.
+ * Param: index - the 1-based index from which to retreive an element.
  */
 template <typename T> T LinkedList<T>::get(int index)
 {
-    Node* node = head;
-    for (int i = 1; i < index; i++)
+    if (index < 0 || index >= size) 
     {
-        node = node->next;
+        T empty;
+        return empty;
     }
-    return node->getData();
+    else if (index = size - 1)
+    {
+        return tail->getData();
+    }
+    else
+    {
+        Node* probe = head;
+        for (int i = 1; i < index; i++)
+        {
+            probe = probe->getNext();
+        }
+        return probe->getData();
+    }
 }
 
 #endif

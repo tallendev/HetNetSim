@@ -14,10 +14,14 @@ class LinearProgram
 {
     private:
         std::string equation;
+        bool objective; // if true, maximize equation, else minimize
         LinkedList<std::string> constraints;
 
     public:
         LinearProgram(std::string equation);
+        ~LinearProgram();
+        void setObjective(bool maxOrMin);
+        bool getObjective(); 
         void addConstraint(std::string constraint);
         std::string getEquation();
         

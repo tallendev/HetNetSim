@@ -1,7 +1,7 @@
 /**
  * Concrete implementation of methods for a Linear Program.
  *
- * Version: 06/12/2014
+ * Version: 06/13/2014
  *
  * Author: Tyler Allen
  * Author: Matthew Leads
@@ -18,3 +18,35 @@ LinearProgram::LinearProgram(std::string equation) : equation (equation)
 {
 }
 
+/**
+ * Destructor for linear program. Currently does nothing.
+ */
+LinearProgram::~LinearProgram()
+{
+}
+
+/**
+ * setObjective method
+ *
+ * Param: maxOrMin - if true, we try to maximize the equation.
+ * Otherwise, try to minimize it.
+ */
+void LinearProgram::setObjective(bool maxOrMin) : objective (maxOrMin)
+{
+}
+
+/**
+ * getObjective method. Returns the boolean value of objective.
+ */
+bool LinearProgram::getObjective() 
+{
+    return objective;
+}
+
+/**
+ * getEquation method. Returns the equation as a string.
+ */
+std::string LinearProgram::getEquation()
+{
+    return equation;
+}

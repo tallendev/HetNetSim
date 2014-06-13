@@ -35,6 +35,7 @@ template <typename T> void LinkedList<T>::add(T item)
     else
     {
         tail->setNext(new Node(item));
+        tail = tail->getNext();
     }
     size++;
 }

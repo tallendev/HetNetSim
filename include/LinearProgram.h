@@ -13,7 +13,9 @@
 class LinearProgram
 {
     private:
-        std::string equation;
+        std::string equation; 
+        // example: 1 + 2 + 3 - 4 = 50 
+        // meaning: 1 + 2x1 + 3x2 - 4x3 = 50
         bool objective; // if true, maximize equation, else minimize
         LinkedList<std::string> constraints;
 
@@ -23,6 +25,8 @@ class LinearProgram
         void setObjective(bool maxOrMin);
         bool getObjective(); 
         void addConstraint(std::string constraint);
+        // example: 3 + 0 - 7 >= 42
+        // meaning: 3x1 - 7x3 >= 42
         std::string getEquation();
         
 };

@@ -1,7 +1,7 @@
 /**
  * This class represents a Linear Program Solver (may later be extended 
  * to solve other types of problems?). This is a Singleton class that receives
- * LinearProgram objects and returns LinearProgramSolutions. This Solver
+ * LinearProgram objects and returns LPSolution references. This Solver
  * will be following the Singleton design pattern, as it should not have
  * state of its own.
  *

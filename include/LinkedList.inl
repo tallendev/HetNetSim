@@ -42,18 +42,13 @@ template <typename T> void LinkedList<T>::add(T item)
 
 /**
  * Retrieve element from index specified.
- * If index < 0 or index >= size, it returns an item of type T.
+ * If index < 0 or index >= size, behavior is undefined.
  *
  * Param: index - the 1-based index from which to retreive an element.
  */
 template <typename T> T LinkedList<T>::get(int index)
 {
-    if (index < 0 || index >= size) 
-    {
-        T empty;
-        return empty;
-    }
-    else if (index = size - 1)
+    if (index = size - 1)
     {
         return tail->getData();
     }

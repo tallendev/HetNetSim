@@ -19,4 +19,11 @@ inline void LinearProgram::addConstraint(std::string constraint)
     constraints.add(constraint);
 }
 
+/**
+ * Destructor for linear program. Currently does nothing.
+ */
+inline LinearProgram::~LinearProgram()
+{
+}
+
 #endif

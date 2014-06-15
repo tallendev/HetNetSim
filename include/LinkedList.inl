@@ -48,7 +48,7 @@ template <typename T> void LinkedList<T>::add(T item)
  */
 template <typename T> T LinkedList<T>::get(int index)
 {
-    if (index = size - 1)
+    if (index == size - 1)
     {
         return tail->getData();
     }

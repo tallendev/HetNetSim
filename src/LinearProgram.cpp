@@ -18,12 +18,6 @@ LinearProgram::LinearProgram(std::string equation) : equation (equation)
 {
 }
 
-/**
- * Destructor for linear program. Currently does nothing.
- */
-LinearProgram::~LinearProgram()
-{
-}
 
 /**
  * setObjective method
@@ -31,8 +25,9 @@ LinearProgram::~LinearProgram()
  * Param: maxOrMin - if true, we try to maximize the equation.
  * Otherwise, try to minimize it.
  */
-void LinearProgram::setObjective(bool maxOrMin) : objective (maxOrMin)
+void LinearProgram::setObjective(bool maxOrMin)
 {
+    objective = maxOrMin;
 }
 
 /**

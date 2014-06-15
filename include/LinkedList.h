@@ -37,13 +37,14 @@ template <typename T> class LinkedList
         class Node
         {
             private:
-                /** The next element in the list following this node.*/
-                Node* next;
                 /** The data stored by this node. */
                 T data;
+                /** The next element in the list following this node.*/
+                Node* next;
             public:
                 Node(T data);
                 Node(T data, Node next);
+                virtual ~Node();
                 virtual T GetData();
                 virtual void SetData(T data);
                 virtual Node* GetNext();

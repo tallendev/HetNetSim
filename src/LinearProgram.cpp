@@ -25,11 +25,7 @@ LinearProgram::LinearProgram(std::string equation) : equation (equation)
  * Param: maxOrMin - if true, we try to maximize the equation.
  * Otherwise, try to minimize it.
  */
-<<<<<<< HEAD
-void LinearProgram::setObjective(bool maxOrMin)
-=======
 void LinearProgram::SetObjective(bool maxOrMin)
->>>>>>> Started the SimplexSolve method. It does not compile correctly.
 {
     objective = maxOrMin;
 }

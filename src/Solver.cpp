@@ -3,7 +3,7 @@
  * to solve other types of problems?). This is a Singleton class that receives
  * LinearProgram objects and returns LinearProgramSolutions. 
  *
- * Version: 06/11/2014
+ * Version: 06/15/2014
  * Author: Tyler Allen
  * Author: Matthew Leads
  */
@@ -49,9 +49,11 @@ LPSolution& Solver::SimplexSolve(LinearProgram& lp)
     // get an iterator for the constraints
     LinkedList<std::string>::ListIterator constraintsIter = lp.GetConstraints().Iterator();
     // for each constraint equation, parse it and fill in the array
+    std::string constraintEqn = "";
     for (int row = 0; row < numConstraints; row++)
     {
-        std::string constraintEqn = constraintsIter.Next();
+        if (constraintsIter.HasNext())
+            constraintEqn = constraintsIter.Next();
         long unsigned int lastSpace = -1;
         for (int var = 0; var < numDecisionVars; var++)
         {

@@ -10,33 +10,6 @@
 
 
 /**
- * Deconstructor for linked list. Frees all data associated with nodes. Does 
- * not attempt to free T, as source of T is unknown.
- */
-template <typename T> LinkedList<T>::~LinkedList()
-{
-   if (head)
-   {
-       freeNode(head); 
-   }
-}
-
-/**
- * Helper for the deconstructor. This is currently recursive - could be 
- * reimplemented iteratively for possible better performance.
- *
- * Param: node - The node to free.
- */ 
-template <typename T> void LinkedList<T>::freeNode(Node* node)
-{
-    if (node->getNext())
-    {
-        freeNode(node->getNext());
-    }
-    delete node;
-}
-
-/**
  * Constructor for node. Must at least have data.
  *
  * Param: data - the data to store in the node.
@@ -46,7 +19,7 @@ template <typename T> LinkedList<T>::Node::Node (T data)
     Node (data, NULL);
 }
 
-template <typename T> int LinkedList<T>::getSize()
+template <typename T> int LinkedList<T>::GetSize()
 {
     return size;
 }
@@ -69,7 +42,7 @@ template <typename T> LinkedList<T>::Node::Node (T data, Node next)
  *
  * Return: The data stored in the node.
  */
-template<typename T> T LinkedList<T>::Node::getData()
+template<typename T> T LinkedList<T>::Node::GetData()
 {
     return data;
 }
@@ -79,7 +52,7 @@ template<typename T> T LinkedList<T>::Node::getData()
  *
  * Param: newData - the data to store in the node.
  */
-template <typename T> void LinkedList<T>::Node::setData(T newData)
+template <typename T> void LinkedList<T>::Node::SetData(T newData)
 {
     data = newData;
 }
@@ -89,7 +62,7 @@ template <typename T> void LinkedList<T>::Node::setData(T newData)
  *
  * Return: The next node in the list.
  */
-template <typename T> typename LinkedList<T>::Node* LinkedList<T>::Node::getNext ()
+template <typename T> typename LinkedList<T>::Node* LinkedList<T>::Node::GetNext ()
 {
     return next;
 }
@@ -98,7 +71,7 @@ template <typename T> typename LinkedList<T>::Node* LinkedList<T>::Node::getNext
  * Changes the node that this node links to. 
  * Param: newNext - Node to replace next with.
  */
-template <typename T> void LinkedList<T>::Node::setNext (Node* newNext)
+template <typename T> void LinkedList<T>::Node::SetNext (Node* newNext)
 {
     newNext = next;
 }
@@ -116,7 +89,7 @@ template <typename T> LinkedList<T>::ListIterator::ListIterator(LinkedList* list
  *
  * Return: True if next() is a valid call. False if not.
  */
-template <typename T> bool LinkedList<T>::ListIterator::hasNext()
+template <typename T> bool LinkedList<T>::ListIterator::HasNext()
 {
     return (bool) current;
 }
@@ -127,9 +100,9 @@ template <typename T> bool LinkedList<T>::ListIterator::hasNext()
  *
  * Return: The next element in the list.
  */
-template <typename T> T LinkedList<T>::ListIterator::next()
+template <typename T> T LinkedList<T>::ListIterator::Next()
 {
-    T data = current->getData();
+    T data = current->GetData();
     current = current->next;
     return data;
 }
@@ -137,7 +110,7 @@ template <typename T> T LinkedList<T>::ListIterator::next()
 /**
  * Returns an iterator over this list.
  */
-template <typename T> typename LinkedList<T>::ListIterator LinkedList<T>::iterator()
+template <typename T> typename LinkedList<T>::ListIterator LinkedList<T>::Iterator()
 {
     return ListIterator(this);
 }

@@ -14,9 +14,9 @@
  *
  * Param: constrain - The constraint to be added.
  */
-inline void LinearProgram::addConstraint(std::string constraint)
+inline void LinearProgram::AddConstraint(std::string constraint)
 {
-    constraints.add(constraint);
+    constraints.Add(constraint);
 }
 
 /**

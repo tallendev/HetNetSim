@@ -29,7 +29,7 @@ template <typename T> class LinkedList
         /** Current size of the linked list. */
         int size;
         
-        void freeNode(Node* node);
+        void FreeNode(Node* node);
         
         /**
          * Nodes making up our linked list.
@@ -44,27 +44,27 @@ template <typename T> class LinkedList
             public:
                 Node(T data);
                 Node(T data, Node next);
-                virtual T getData();
-                virtual void setData(T data);
-                virtual Node* getNext();
-                virtual void setNext(Node* next);
+                virtual T GetData();
+                virtual void SetData(T data);
+                virtual Node* GetNext();
+                virtual void SetNext(Node* next);
         };
 
+    public:
         class ListIterator
         {
             private:
                 Node* current;
             public:
                 ListIterator(LinkedList* list);
-                bool hasNext();
-                T next();
+                bool HasNext();
+                T Next();
         };
-    public:
         LinkedList();
-        void add(T item);
-        int getSize();
-        T get(int index);
-        ListIterator iterator();
+        void Add(T item);
+        int GetSize();
+        T Get(int index);
+        ListIterator Iterator();
         ~LinkedList();
 };
 

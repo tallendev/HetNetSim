@@ -20,28 +20,40 @@ LinearProgram::LinearProgram(std::string equation) : equation (equation)
 
 
 /**
- * setObjective method
+ * SetObjective method
  *
  * Param: maxOrMin - if true, we try to maximize the equation.
  * Otherwise, try to minimize it.
  */
+<<<<<<< HEAD
 void LinearProgram::setObjective(bool maxOrMin)
+=======
+void LinearProgram::SetObjective(bool maxOrMin)
+>>>>>>> Started the SimplexSolve method. It does not compile correctly.
 {
     objective = maxOrMin;
 }
 
 /**
- * getObjective method. Returns the boolean value of objective.
+ * GetObjective method. Returns the boolean value of objective.
  */
-bool LinearProgram::getObjective() 
+bool LinearProgram::GetObjective() 
 {
     return objective;
 }
 
 /**
- * getEquation method. Returns the equation as a string.
+ * GetEquation method. Returns the equation as a string.
  */
-std::string LinearProgram::getEquation()
+std::string LinearProgram::GetEquation()
 {
     return equation;
+}
+
+/**
+ * GetConstraints method. returns the linked list of constraint equations.
+ */
+LinkedList<std::string> LinearProgram:: GetConstraints()
+{
+    return constraints;
 }

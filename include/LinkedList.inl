@@ -22,10 +22,34 @@ template <typename T> LinkedList<T>::LinkedList()
 }
 
 /**
+ * Helper for the deconstructor. This is currently recursive - could be 
+ * reimplemented iteratively for possible better performance.
+ *
+ * Param: node - The node to free.
+ */
+template <typename T> void LinkedList<T>::FreeNode(Node* node)
+{
+    if (node->GetNext())
+    {
+        FreeNode(node->GetNext());
+    }
+    delete node;
+}
+
+/**
+ * Destructor for LinkedList. Frees all nodes.
+ */
+template <typename T> LinkedList<T>::~LinkedList()
+{
+    if (head)
+        FreeNode(head);
+}
+
+/**
  * Add an item to the linked list.
  * Param: item - The data to be stored in the node.
  */
-template <typename T> void LinkedList<T>::add(T item)
+template <typename T> void LinkedList<T>::Add(T item)
 {
     if (head == NULL)
     {
@@ -34,8 +58,8 @@ template <typename T> void LinkedList<T>::add(T item)
     }
     else
     {
-        tail->setNext(new Node(item));
-        tail = tail->getNext();
+        tail->SetNext(new Node(item));
+        tail = tail->GetNext();
     }
     size++;
 }
@@ -46,20 +70,20 @@ template <typename T> void LinkedList<T>::add(T item)
  *
  * Param: index - the 1-based index from which to retreive an element.
  */
-template <typename T> T LinkedList<T>::get(int index)
+template <typename T> T LinkedList<T>::Get(int index)
 {
     if (index == size - 1)
     {
-        return tail->getData();
+        return tail->GetData();
     }
     else
     {
         Node* probe = head;
         for (int i = 1; i < index; i++)
         {
-            probe = probe->getNext();
+            probe = probe->GetNext();
         }
-        return probe->getData();
+        return probe->GetData();
     }
 }
 

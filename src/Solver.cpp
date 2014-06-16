@@ -3,9 +3,9 @@
  * to solve other types of problems?). This is a Singleton class that receives
  * LinearProgram objects and returns LinearProgramSolutions. 
  *
- * Version: 06/15/2014
+ * Version: 06/16/2014
  * Author: Tyler Allen
- * Author: Matthew Leads
+ * Author: Matthew Leeds
  */
 
 #include "Solver.h"
@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <iostream>
 
+// a function for counting the number of spaces in a string
 int count_spaces(std::string s)
 {
     int count = 0;
@@ -34,20 +35,18 @@ int count_spaces(std::string s)
  */
 LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
+
     // calculate the # of decision vars and # of constraints
     int numDecisionVars = count_spaces(lp->GetEquation()) + 1;
-    std::cout << "numDecisionVars = " << numDecisionVars << std::endl;
     LinkedList<std::string> listOfConstraints = lp->GetConstraints();
     int numConstraints = listOfConstraints.GetSize();
-    std::cout << "numConstraints = " << numConstraints << std::endl;
+
     // initialize a (n+1) x (n+m+1) matrix and zero-fill it
     int tableau[numConstraints + 1][numDecisionVars + numConstraints + 1];
     for (int i = 0; i < numConstraints + 1; i++)
     {
         for (int j = 0; j < numDecisionVars + numConstraints + 1; j++)
-        {
             tableau[i][j] = 0;
-        }
     }
     // get an iterator for the constraints
     LinkedList<std::string>::ListIterator constraintsIter(&listOfConstraints);
@@ -56,9 +55,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     for (int row = 0; row < numConstraints; row++)
     {
         if (constraintsIter.HasNext())
-        {
             constraintEqn = constraintsIter.Next();
-        }
         long unsigned int lastSpace = -1;
         for (int var = 0; var < numDecisionVars; var++)
         {
@@ -83,15 +80,33 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     }
     int lastCoeff = atoi(objEqn.substr(lastSpace + 1, objEqn.length() - lastSpace - 1).c_str());
     tableau[numConstraints][numDecisionVars - 1] = lastCoeff;
-    /**
-     * The tableau (matrix) should now be filled.
-     * For debugging, here's code for displaying the matrix.
-     */
-    for (int i=0; i < numConstraints+1; i++) {
-        for (int j=0; j < numDecisionVars + numConstraints + 1; j++) {
+    // The tableau (matrix) should now be filled.
+    // Display the matrix (for debugging).
+    for (int i = 0; i < numConstraints + 1; i++)
+    {
+        for (int j = 0; j < numDecisionVars + numConstraints + 1; j++)
             std::cout << tableau[i][j] << " ";
-        }
         std::cout << std::endl;
+    }
+
+    // determine if we are at an optimal solution
+    int maxCoeff = 0;
+    int pivotCol = -1;
+    for (int var = 0; var < numDecisionVars + numConstraints; var++)
+    {
+        if (tableau[numConstraints][var] > maxCoeff)
+        {
+            maxCoeff = tableau[numConstraints][var];
+            pivotCol = var;
+        }
+    }
+    if (maxCoeff == 0)
+    {
+        // this is an optimal solution
+    }
+    else
+    {
+        // pivot on pivotCol
     }
 
     static LPSolution sol; //created to make compile...

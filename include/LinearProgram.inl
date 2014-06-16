@@ -3,7 +3,7 @@
  *
  * Version: 06/12/2014
  * Author: Tyler Allen
- * Author: Matthew Leads
+ * Author: Matthew Leeds
  */
 
 #ifndef LINEARPROGRAM_INL

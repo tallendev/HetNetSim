@@ -26,8 +26,9 @@
 LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
     int numDecisionVars = 0;
-    LinkedList<std::string>* listOfConstraints = lp->GetConstraints();
-    int numConstraints = listOfConstraints->GetSize();
+    //LinkedList<std::string>* listOfConstraints = lp->GetConstraints();
+    //int numConstraints = listOfConstraints->GetSize();
+    int numConstraints = lp->GetConstraints()->GetSize();
     int** tableau = lpToTableau(lp, &numDecisionVars);
 
 
@@ -54,12 +55,19 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
      * The tableau (matrix) should now be filled.
      * For debugging, here's code for displaying the matrix.
      */
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 7; j++) {
+    for (int i = 0; i < numConstraints + 1; i++) {
+        for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) {
             std::cout << tableau[i][j] << " ";
         }
         std::cout << std::endl;
     }
+
+    /* May need to be moved later if tableau exists in LPSolution. */
+    for (int i = 0; i < numConstraints + 1; i++)
+    {
+        delete [] tableau[i];
+    }
+    delete [] tableau;
 
     static LPSolution sol; //created to make compile...
     return sol;

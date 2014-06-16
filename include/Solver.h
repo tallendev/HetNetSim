@@ -7,7 +7,7 @@
  *
  * Version: 06/11/2014
  * Author: Tyler Allen
- * Author: Matthew Leads
+ * Author: Matthew Leeds
  */
 
 #ifndef SOLVER_H

@@ -4,7 +4,7 @@
  * Version: 06/13/2014
  *
  * Author: Tyler Allen
- * Author: Matthew Leads
+ * Author: Matthew Leeds
  */
 
 #include "LinearProgram.h"

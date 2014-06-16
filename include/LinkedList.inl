@@ -11,6 +11,8 @@
 #ifndef LINKEDLIST_INL
 #define LINKEDLIST_INL
 
+#include <iostream>
+
 /**
  * Default constructor for an empty list.
  */
@@ -28,6 +30,7 @@ template <typename T> LinkedList<T>::LinkedList()
  */
 template<typename T> T LinkedList<T>::Node::GetData()
 {
+    std::cout << "3.612" << std::endl;
     return data;
 }
 
@@ -92,7 +95,6 @@ template <typename T> LinkedList<T>::~LinkedList()
 template <typename T> LinkedList<T>::Node::Node (T initData) 
                                                : data (initData), next(NULL)
 {
-
 }
 
 /**
@@ -126,8 +128,16 @@ template <typename T> void LinkedList<T>::Add(T item)
     }
     else
     {
-        tail->SetNext(new Node(item));
-        tail = tail->GetNext();
+        if (tail == head)
+        {
+            tail = new Node(item);
+            head->SetNext(tail);
+        }
+        else
+        {
+            tail->SetNext(new Node(item));
+            tail = tail->GetNext();
+        }
     }
     size++;
 }
@@ -172,6 +182,13 @@ template <typename T> LinkedList<T>::ListIterator::ListIterator(LinkedList* list
 }
 
 /**
+ * List Iterator destructor.
+ */
+template <typename T> LinkedList<T>::ListIterator::~ListIterator()
+{
+}
+
+/**
  * Returns next element. Call HasNext() first. The behavior of this while 
  * HasNext() is false is undefined.
  *
@@ -179,9 +196,10 @@ template <typename T> LinkedList<T>::ListIterator::ListIterator(LinkedList* list
  */
 template <typename T> T LinkedList<T>::ListIterator::Next()
 {
-    T data = current->GetData();
+    T currentData = current->GetData();
+    std::cout << "3.62" << std::endl;
     current = current->GetNext();
-    return data;
+    return currentData;
 }
 
 /**

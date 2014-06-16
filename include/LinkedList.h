@@ -58,6 +58,7 @@ template <typename T> class LinkedList
                 Node* current;
             public:
                 ListIterator(LinkedList* list);
+                ~ListIterator();
                 bool HasNext();
                 T Next();
         };

@@ -13,15 +13,7 @@
 #include <cstdlib>
 #include <iostream>
 
-// a function for counting the number of spaces in a string
-int count_spaces(std::string s)
-{
-    int count = 0;
-    for (unsigned int i = 0; i < s.size(); i++)
-        if (s[i] == ' ')
-            count++;
-    return count;
-}
+int CountSpaces(std::string s);
 
 /**
  * Implementation of classic simplex method to solving linear programs.
@@ -37,7 +29,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
 
     // calculate the # of decision vars and # of constraints
-    int numDecisionVars = count_spaces(lp->GetEquation()) + 1;
+    int numDecisionVars = CountSpaces(lp->GetEquation()) + 1;
     LinkedList<std::string> listOfConstraints = lp->GetConstraints();
     int numConstraints = listOfConstraints.GetSize();
 
@@ -68,7 +60,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
         tableau[row][numDecisionVars + numConstraints] = bValue;
         tableau[row][numDecisionVars + row] = 1;
     }
-    // fill in the last row according to the objective equation coefficients
+    // fill in the last row acco<F4>rding to the objective equation coefficients
     std::string objEqn = lp->GetEquation();
     long unsigned int lastSpace = -1;
     for (int var = 0; var < numDecisionVars - 1; var++)
@@ -113,4 +105,13 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     return sol;
 }
 
+// a function for counting the number of spaces in a string
+int CountSpaces(std::string s)
+{
+    int count = 0;
+    for (unsigned int i = 0; i < s.size(); i++)
+        if (s[i] == ' ')
+            count++;
+    return count;
+}
 

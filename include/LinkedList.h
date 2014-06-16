@@ -54,10 +54,15 @@ template <typename T> class LinkedList
     public:
         class ListIterator
         {
+            friend class LinkedList;
             private:
                 Node* current;
+            protected:
+                ListIterator(LinkedList* list)
+                {
+                    current = list->head;
+                }
             public:
-                ListIterator(LinkedList* list);
                 ~ListIterator();
                 bool HasNext();
                 T Next();

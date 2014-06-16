@@ -174,10 +174,7 @@ template <typename T> int LinkedList<T>::GetSize()
 /**
  * Constructor for list iterator.
  */
-template <typename T> LinkedList<T>::ListIterator::ListIterator(LinkedList* list)
-{
-    current = list->head;
-}
+//template <typename T> LinkedList<T>::ListIterator::ListIterator(LinkedList* list)
 
 /**
  * List Iterator destructor.

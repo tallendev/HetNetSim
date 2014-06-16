@@ -49,7 +49,7 @@ std::string LinearProgram::GetEquation()
 /**
  * GetConstraints method. returns the linked list of constraint equations.
  */
-LinkedList<std::string> LinearProgram:: GetConstraints()
+LinkedList<std::string>* LinearProgram:: GetConstraints()
 {
-    return constraints;
+    return &constraints;
 }

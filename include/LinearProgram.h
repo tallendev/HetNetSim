@@ -28,7 +28,7 @@ class LinearProgram
         // example: 3 0 -7 42
         // meaning: 3x1 -7x3 <= 42
         std::string GetEquation();
-        LinkedList<std::string> GetConstraints();
+        LinkedList<std::string>* GetConstraints();
         // int ValidateFormat();
         
 };

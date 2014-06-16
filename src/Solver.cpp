@@ -25,7 +25,31 @@
  */
 LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
-    int** tableau = lpToTableau(lp);
+    int numDecisionVars = 0;
+    LinkedList<std::string>* listOfConstraints = lp->GetConstraints();
+    int numConstraints = listOfConstraints->GetSize();
+    int** tableau = lpToTableau(lp, &numDecisionVars);
+
+
+    int maxCoeff = 0;
+    int pivotCol = -1;
+    for (int var = 0; var < numDecisionVars + numConstraints; var++)
+    {
+        if (tableau[numConstraints][var] > maxCoeff)
+        {
+            maxCoeff = tableau[numConstraints][var];
+            pivotCol = var;
+        }
+    }
+    if (maxCoeff == 0)
+    {
+        // this is an optimal solution
+    }
+    else
+    {
+        // pivot on pivotCol 
+    }
+
     /**
      * The tableau (matrix) should now be filled.
      * For debugging, here's code for displaying the matrix.
@@ -41,24 +65,23 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     return sol;
 }
 
-int** Solver::lpToTableau(LinearProgram* lp)
+int** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars)
 {
-    LinkedList<std::string> listOfConstraints = lp->GetConstraints();
-    int numConstraints = listOfConstraints.GetSize();
-    int numDecisionVars = 0;
+    LinkedList<std::string>* listOfConstraints = lp->GetConstraints();
+    int numConstraints = listOfConstraints->GetSize();
     std::istringstream countVars(lp->GetEquation());
     std::string token;
     while (std::getline(countVars, token, ' '))
     {
-        numDecisionVars++;
+        (*numDecisionVars)++;
     }
 
     int** tableau = new int*[numConstraints + 1]();  //implement safe calloc
     for (int i = 0; i < numConstraints + 1; i++)
     {
-        tableau[i] = new int[(numDecisionVars + numConstraints + 1) * numConstraints]();
+        tableau[i] = new int[(*numDecisionVars + numConstraints + 1) * numConstraints]();
     }
-    LinkedList<std::string>::ListIterator constraintsIter(&listOfConstraints);
+    LinkedList<std::string>::ListIterator constraintsIter = listOfConstraints->Iterator();
     for (int i = 0; i < numConstraints; i++)
     {
         int j = 0;
@@ -68,9 +91,9 @@ int** Solver::lpToTableau(LinearProgram* lp)
             std::istringstream(token) >> tableau[i][j++];
         }
         j--;
-        tableau[i][numDecisionVars + numConstraints] = tableau[i][j];
+        tableau[i][*numDecisionVars + numConstraints] = tableau[i][j];
         tableau[i][j] = 0;
-        tableau[i][numDecisionVars + i] = 1;
+        tableau[i][*numDecisionVars + i] = 1;
     }
     
     std::istringstream split(lp->GetEquation());

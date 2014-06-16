@@ -17,3 +17,13 @@ LPSolution::LPSolution()
 {
     
 }
+
+int LPSolution::CheckErrorCode()
+{
+    return errorCode;
+}
+
+void LPSolution::SetErrorCode(int code)
+{
+    errorCode = code;
+}

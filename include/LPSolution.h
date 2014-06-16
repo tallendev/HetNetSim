@@ -15,8 +15,11 @@
 class LPSolution
 {
     private:
+        int errorCode;
     public:
         LPSolution();
+        int CheckErrorCode();
+        void SetErrorCode(int code);
 
 };
 

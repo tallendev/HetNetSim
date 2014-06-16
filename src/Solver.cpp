@@ -13,15 +13,6 @@
 #include <cstdlib>
 #include <iostream>
 
-int count_spaces(std::string s)
-{
-    int count = 0;
-    for (unsigned int i = 0; i < s.size(); i++)
-        if (s[i] == ' ')
-            count++;
-    return count;
-}
-
 /**
  * Implementation of classic simplex method to solving linear programs.
  * Currently assumes:
@@ -34,61 +25,13 @@ int count_spaces(std::string s)
  */
 LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
-    // calculate the # of decision vars and # of constraints
-    int numDecisionVars = count_spaces(lp->GetEquation()) + 1;
-    std::cout << "numDecisionVars = " << numDecisionVars << std::endl;
-    LinkedList<std::string> listOfConstraints = lp->GetConstraints();
-    int numConstraints = listOfConstraints.GetSize();
-    std::cout << "numConstraints = " << numConstraints << std::endl;
-    // initialize a (n+1) x (n+m+1) matrix and zero-fill it
-    int tableau[numConstraints + 1][numDecisionVars + numConstraints + 1];
-    for (int i = 0; i < numConstraints + 1; i++)
-    {
-        for (int j = 0; j < numDecisionVars + numConstraints + 1; j++)
-        {
-            tableau[i][j] = 0;
-        }
-    }
-    // get an iterator for the constraints
-    LinkedList<std::string>::ListIterator constraintsIter(&listOfConstraints);
-    // for each constraint equation, parse it and fill in the array
-    std::string constraintEqn = "";
-    for (int row = 0; row < numConstraints; row++)
-    {
-        if (constraintsIter.HasNext())
-        {
-            constraintEqn = constraintsIter.Next();
-        }
-        long unsigned int lastSpace = -1;
-        for (int var = 0; var < numDecisionVars; var++)
-        {
-            long unsigned int nextSpace = constraintEqn.find(' ', lastSpace + 1);
-            std::string substring = constraintEqn.substr(lastSpace + 1, nextSpace - lastSpace - 1);
-            tableau[row][var] = atoi(substring.c_str());
-            lastSpace = nextSpace;
-        }
-        int bValue = atoi(constraintEqn.substr(lastSpace + 1, constraintEqn.length() - lastSpace - 1).c_str());
-        tableau[row][numDecisionVars + numConstraints] = bValue;
-        tableau[row][numDecisionVars + row] = 1;
-    }
-    // fill in the last row according to the objective equation coefficients
-    std::string objEqn = lp->GetEquation();
-    long unsigned int lastSpace = -1;
-    for (int var = 0; var < numDecisionVars - 1; var++)
-    {
-        long unsigned int nextSpace = objEqn.find(' ', lastSpace + 1);
-        std::string substring = objEqn.substr(lastSpace + 1, nextSpace - lastSpace - 1);
-        tableau[numConstraints][var] = atoi(substring.c_str());
-        lastSpace = nextSpace;
-    }
-    int lastCoeff = atoi(objEqn.substr(lastSpace + 1, objEqn.length() - lastSpace - 1).c_str());
-    tableau[numConstraints][numDecisionVars - 1] = lastCoeff;
+    int** tableau = lpToTableau(lp);
     /**
      * The tableau (matrix) should now be filled.
      * For debugging, here's code for displaying the matrix.
      */
-    for (int i=0; i < numConstraints+1; i++) {
-        for (int j=0; j < numDecisionVars + numConstraints + 1; j++) {
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 7; j++) {
             std::cout << tableau[i][j] << " ";
         }
         std::cout << std::endl;
@@ -96,6 +39,46 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 
     static LPSolution sol; //created to make compile...
     return sol;
+}
+
+int** Solver::lpToTableau(LinearProgram* lp)
+{
+    LinkedList<std::string> listOfConstraints = lp->GetConstraints();
+    int numConstraints = listOfConstraints.GetSize();
+    int numDecisionVars = 0;
+    std::istringstream countVars(lp->GetEquation());
+    std::string token;
+    while (std::getline(countVars, token, ' '))
+    {
+        numDecisionVars++;
+    }
+
+    int** tableau = new int*[numConstraints + 1]();  //implement safe calloc
+    for (int i = 0; i < numConstraints + 1; i++)
+    {
+        tableau[i] = new int[(numDecisionVars + numConstraints + 1) * numConstraints]();
+    }
+    LinkedList<std::string>::ListIterator constraintsIter(&listOfConstraints);
+    for (int i = 0; i < numConstraints; i++)
+    {
+        int j = 0;
+        std::istringstream split(constraintsIter.Next());
+        while (std::getline(split, token, ' '))
+        {
+            std::istringstream(token) >> tableau[i][j++];
+        }
+        j--;
+        tableau[i][numDecisionVars + numConstraints] = tableau[i][j];
+        tableau[i][j] = 0;
+        tableau[i][numDecisionVars + i] = 1;
+    }
+    
+    std::istringstream split(lp->GetEquation());
+    for (int i = 0; std::getline(split, token, ' '); i++)
+    {
+        std::istringstream(token) >> tableau[numConstraints][i];
+    }
+    return tableau;
 }
 
 

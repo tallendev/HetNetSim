@@ -14,12 +14,13 @@
 #define SOLVER_H
 #include "LinearProgram.h"
 #include "LPSolution.h"
-
+#include <sstream>
 
 class Solver
 {
     private:
         Solver() {};
+        int** lpToTableau(LinearProgram* lp);
         // Don't implement these, they prevent copies from being made.
         Solver(Solver const& copy);
         Solver& operator=(Solver const& copy);
@@ -38,6 +39,7 @@ class Solver
             return solver;
         }
         LPSolution SimplexSolve(LinearProgram* lp);
+        
 };
 
 #endif

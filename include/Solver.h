@@ -20,7 +20,6 @@ class Solver
 {
     private:
         Solver() {};
-
         // Don't implement these, they prevent copies from being made.
         Solver(Solver const& copy);
         Solver& operator=(Solver const& copy);
@@ -32,14 +31,13 @@ class Solver
      * is key in the implementation of the Singleton Pattern.
      *
      * Return: Returns the sole instance of the Solver class.
-     */
+     */ 
         static Solver& getInstance()
         {
             static Solver solver;
             return solver;
         }
-
-        LPSolution& SimplexSolve(LinearProgram& lp);
+        LPSolution SimplexSolve(LinearProgram* lp);
 };
 
 #endif

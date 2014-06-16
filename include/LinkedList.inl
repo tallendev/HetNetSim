@@ -11,7 +11,6 @@
 #ifndef LINKEDLIST_INL
 #define LINKEDLIST_INL
 
-#include <iostream>
 
 /**
  * Default constructor for an empty list.
@@ -30,7 +29,6 @@ template <typename T> LinkedList<T>::LinkedList()
  */
 template<typename T> T LinkedList<T>::Node::GetData()
 {
-    std::cout << "3.612" << std::endl;
     return data;
 }
 
@@ -197,7 +195,6 @@ template <typename T> LinkedList<T>::ListIterator::~ListIterator()
 template <typename T> T LinkedList<T>::ListIterator::Next()
 {
     T currentData = current->GetData();
-    std::cout << "3.62" << std::endl;
     current = current->GetNext();
     return currentData;
 }

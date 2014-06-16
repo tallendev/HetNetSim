@@ -5,11 +5,11 @@
 
 int main(void)
 {
-    LinearProgram testProblem("5 4 3");
-    testProblem.SetObjective(true);
-    testProblem.AddConstraint("2 3 1 5");
-    testProblem.AddConstraint("4 1 2 11");
-    testProblem.AddConstraint("3 4 2 8");
-    Solver::getInstance().SimplexSolve(testProblem);
+    LinearProgram* pTestProblem = new LinearProgram("5 4 3");
+    pTestProblem->SetObjective(true);
+    pTestProblem->AddConstraint("2 3 1 5");
+    pTestProblem->AddConstraint("4 1 2 11");
+    pTestProblem->AddConstraint("3 4 2 8");
+    Solver::getInstance().SimplexSolve(pTestProblem);
     return 0;
 }

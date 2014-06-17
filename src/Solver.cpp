@@ -13,6 +13,9 @@
 #include <string>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
+
+unsigned long long choose(unsigned long long n, unsigned long long k);
 
 /**
  * Implementation of classic simplex method to solving linear programs.
@@ -33,60 +36,78 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     int numConstraints = lp->GetConstraints()->GetSize();
     float** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
     // TODO: check for infeasibility
-    // TODO: Limit iterations to at most (n+m choose m)
-
-    // Determine if the solution is optimal or a pivot is needed.
-    float maxCoeff = 0;
-    int pivotCol = -1;
-    for (int var = 0; var < numDecisionVars + numConstraints; var++)
+    unsigned long long maxIter = choose((unsigned long long) numConstraints + numDecisionVars, 
+                                        (unsigned long long) numConstraints);
+    unsigned long long numIter = 0; // number of iterations completed.
+    while (numIter < maxIter)
     {
-        if (tableau[numConstraints][var] > maxCoeff)
-        {
-            maxCoeff = tableau[numConstraints][var];
-            pivotCol = var;
-        }
-    }
-    if (maxCoeff == 0)
-    {
-        // this is an optimal solution
-        sol.SetErrorCode(0);
-        // populate LPSolution and return
-    }
-    else
-    {
-        // Check if all entries in pivotCol are <= 0
-        float maxVar = 0;
-        for (int i = 0; i < numConstraints; i++)
-        {
-            if (tableau[i][pivotCol] > maxVar)
-                maxVar = tableau[i][pivotCol];
-        }
-        if (maxVar == 0)
-        {
-            // The problem is unbounded.
-            sol.SetErrorCode(100);
-            return sol;
-        }
-        else
-        {
-            // Determine pivot row.
-            int pivotRow = -1;
-            double minRatio = DBL_MAX;
-            for (int i = 0; i < numConstraints; i++)
-            {
-                if (tableau[i][pivotCol] > 0)
-                {
-                    if ((tableau[i][numConstraints + numDecisionVars] / tableau[i][pivotCol]) < minRatio)
-                    {
-                        minRatio = tableau[i][numConstraints + numDecisionVars] / tableau[i][pivotCol];
-                        pivotRow = i;
-                    }
+        // Determine if the solution is optimal or a pivot is needed.
+        float maxCoeff = 0;
+        int pivotCol = -1;
+	for (int var = 0; var < numDecisionVars + numConstraints; var++)
+	{
+	    if (tableau[numConstraints][var] > maxCoeff)
+	    {
+		maxCoeff = tableau[numConstraints][var];
+		pivotCol = var;
+	    }
+	}
+	if (maxCoeff == 0)
+	{
+	    // this is an optimal solution
+	    sol.SetErrorCode(0);
+	    // populate LPSolution, free the tableau memory, and return
+	}
+	else
+	{
+	    // Check if all entries in pivotCol are <= 0
+	    float maxVar = 0;
+	    for (int i = 0; i < numConstraints; i++)
+	    {
+		if (tableau[i][pivotCol] > maxVar)
+		    maxVar = tableau[i][pivotCol];
+	    }
+	    if (maxVar == 0)
+	    {
+		// The problem is unbounded.
+		sol.SetErrorCode(100);
+                // free tableau memory
+		return sol;
+	    }
+	    else
+	    {
+		// Determine pivot row.
+		int pivotRow = -1;
+		double minRatio = DBL_MAX;
+		for (int i = 0; i < numConstraints; i++)
+		{
+		    if (tableau[i][pivotCol] > 0)
+		    {
+			if ((tableau[i][numConstraints + numDecisionVars] / tableau[i][pivotCol]) < minRatio)
+			{
+			    minRatio = tableau[i][numConstraints + numDecisionVars] / tableau[i][pivotCol];
+			    pivotRow = i;
+			}
+		    }
+		}
+		// Pivot the table to (hopefully) increase z.
+		Pivot(tableau, &pivotRow, &pivotCol, &numDecisionVars, &numConstraints);
+                numIter++;
+                std::cout << "Pivot # " << numIter << std::endl;
+                /**
+		* For debugging, here's code for displaying the matrix.
+		*/
+	        for (int i = 0; i < numConstraints + 1; i++) {
+		    for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) {
+		        std::cout << tableau[i][j] << " ";
+		    } 
+		    std::cout << std::endl;
                 }
-            }
-            // Pivot the table to (hopefully) increase z.
-            Pivot(tableau, &pivotRow, &pivotCol, &numDecisionVars, &numConstraints);
-        }
-                    
+                std::cin;
+
+	    }
+			
+	}
     }
 
     /**
@@ -107,6 +128,36 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     delete [] tableau;
 
     return sol;
+}
+
+unsigned long long gcd(unsigned long long x, unsigned long long y)
+{
+    while (y != 0)
+    {
+        unsigned long long t = x % y;
+        x = y;
+        y = t;
+    }
+    return x;
+}
+
+unsigned long long choose(unsigned long long n, unsigned long long k)
+{
+    unsigned long long r = 1;
+    if (k > n)
+        // invalid parameters
+        return r = -1;
+    for (unsigned long long d = 1; d <= k; ++d, --n)
+    {
+        unsigned long long g = gcd(r, d);
+        r /= g;
+        unsigned long long t = n / (d / g);
+        if (r > std::numeric_limits<unsigned long long>::max() / t)
+            // overflow error
+            return r = -2;
+        r *= t;
+    }
+    return r;
 }
 
 float** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints)

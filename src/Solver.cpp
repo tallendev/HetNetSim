@@ -3,7 +3,7 @@
  * to solve other types of problems?). This is a Singleton class that receives
  * LinearProgram objects and returns LinearProgramSolutions. 
  *
- * Version: 06/15/2014
+ * Version: 06/17/2014
  * Author: Tyler Allen
  * Author: Matthew Leeds
  */
@@ -31,8 +31,6 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
     static LPSolution sol;
     int numDecisionVars = 0;
-    //LinkedList<std::string>* listOfConstraints = lp->GetConstraints();
-    //int numConstraints = listOfConstraints->GetSize();
     int numConstraints = lp->GetConstraints()->GetSize();
     float** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
     // TODO: check for infeasibility
@@ -56,7 +54,13 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	{
 	    // this is an optimal solution
 	    sol.SetErrorCode(0);
-	    // populate LPSolution, free the tableau memory, and return
+            // TODO: poplulate LPSolution
+            for (int i = 0; i < numConstraints + 1; i++)
+            {
+                delete [] tableau[i];
+            }
+            delete [] tableau;
+            return sol;
 	}
 	else
 	{
@@ -71,7 +75,11 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	    {
 		// The problem is unbounded.
 		sol.SetErrorCode(100);
-                // free tableau memory
+                for (int i = 0; i < numConstraints + 1; i++)
+                {
+                    delete [] tableau[i];
+                }
+                delete [] tableau;
 		return sol;
 	    }
 	    else
@@ -93,20 +101,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 		// Pivot the table to (hopefully) increase z.
 		Pivot(tableau, &pivotRow, &pivotCol, &numDecisionVars, &numConstraints);
                 numIter++;
-                std::cout << "Pivot # " << numIter << std::endl;
-                /**
-		* For debugging, here's code for displaying the matrix.
-		*/
-	        for (int i = 0; i < numConstraints + 1; i++) {
-		    for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) {
-		        std::cout << tableau[i][j] << " ";
-		    } 
-		    std::cout << std::endl;
-                }
-                std::cin;
-
-	    }
-			
+            }
 	}
     }
 

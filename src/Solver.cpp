@@ -83,9 +83,9 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
                     }
                 }
             }
-            // Pivot(tableau, pivotRow, pivotCol, &numDecisionVars, &numConstraints);
+            // Pivot the table to (hopefully) increase z.
+            Pivot(tableau, &pivotRow, &pivotCol, &numDecisionVars, &numConstraints);
         }
-
                     
     }
 
@@ -147,10 +147,23 @@ float** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numCon
     return tableau;
 }
 
-
-/*
-void Solver::Pivot(int** tableau, int pivotRow, int pivotCol, int* numDecisionVars, int* numConstraints)
+void Solver::Pivot(float** tableau, int* pivotRow, int* pivotCol,
+                   int* numDecisionVars, int* numConstraints)
 {
-    int pivotNumber = (*tableau)[pivotRow][pivotCol];
-    // this entire matrix needs to be re-implemented as double
-*/
+    float pivotNumber = tableau[*pivotRow][*pivotCol];
+    for (int col = 0; col < *numConstraints + *numDecisionVars + 1; col++)
+    {
+        tableau[*pivotRow][col] = tableau[*pivotRow][col] / pivotNumber;
+    }
+    for (int row = 0; row < *numConstraints + 1; row++)
+    {
+        if (tableau[row][*pivotCol] != 0 && row != *pivotRow)
+        {
+            float multiple = tableau[row][*pivotCol] / tableau[*pivotRow][*pivotCol];
+            for (int col = 0; col < *numConstraints + *numDecisionVars + 1; col++)
+            {
+                tableau[row][col] = tableau[row][col] - (multiple * tableau[*pivotRow][col]);
+            }
+        }
+    }
+}

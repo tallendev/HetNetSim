@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <vector>
 
 unsigned long long choose(unsigned long long n, unsigned long long k);
 
@@ -44,13 +45,12 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     int numDecisionVars = 0;
     int numConstraints = lp->GetConstraints()->GetSize();
     float** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
-    float* optimalValues;
-    optimalValues = new float[numDecisionVars];
-    memset(optimalValues, 0, sizeof(*optimalValues) * numDecisionVars);
+    std::vector<float> optimalValues (numDecisionVars, 0);
     unsigned long long maxIter = choose((unsigned long long) numConstraints + (unsigned long long) numDecisionVars, 
                                         (unsigned long long) numConstraints);
     unsigned long long numIter = 0; // number of iterations completed.
-    while (numIter < maxIter)
+    bool stay = true;
+    while (numIter < maxIter && stay)
     {
         // Determine if the solution is optimal or a pivot is needed.
         float maxCoeff = 0;
@@ -67,19 +67,19 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	{
 	    sol.SetErrorCode(SOLVED);
 
-            // display the matrix 
+            /* display the matrix 
             for (int i = 0; i < numConstraints + 1; i++) {
                 for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) 
 		    std::cout << tableau[i][j] << "  ";
                 std::cout << std::endl;
-	    }
-
+	    }*/
+            
             // evaluate the final matrix for the values of each decision variable
-            bool foundOne = false; // set to true if you find a one
-            bool foundNonZero = false; // set to true if you find something other than a zero or one
-            int solutionRow = -1;
             for (int col = 0; col < numDecisionVars; col++)
             {
+                bool foundOne = false; // found a 1 in this column
+                bool foundNonZero = false; // found some nonzero number in this column (except 1st 1)
+                int solutionRow = -1; // theorectically redundant
                 for (int row = 0; row < numConstraints + 1; row++)
                 {
                     if (tableau[row][col] != 0)
@@ -97,13 +97,11 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
                 }
                 if (foundOne && !foundNonZero)
                 {
-                   std::cout << "writing " << tableau[solutionRow][numConstraints + numDecisionVars] <<
-                                " to column " << col << " in optimalValues." << std::endl;
                    optimalValues[col] = tableau[solutionRow][numConstraints + numDecisionVars];
                 }
             }
             sol.SetOptimalValues(optimalValues); 
-            numIter = maxIter; // break out of the loop to return
+            stay = false; // break out of the loop to return
 	}
 	else
 	{
@@ -117,48 +115,37 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	    if (maxVar == 0)
 	    {
 		sol.SetErrorCode(UNBOUNDED);
-                numIter = maxIter; // break out of the loop to return
+                stay = false; // break out of the loop to return
 	    }
 	    else
 	    {
 		// Determine pivot row.
 		int pivotRow = -1;
 		double minRatio = DBL_MAX;
-		for (int i = 0; i < numConstraints; i++)
+		for (int row = 0; row < numConstraints; row++)
 		{
-		    if (tableau[i][pivotCol] > 0)
+		    if (tableau[row][pivotCol] > 0)
 		    {
-			if ((tableau[i][numConstraints + numDecisionVars] / tableau[i][pivotCol]) < minRatio)
+			if ((tableau[row][numConstraints + numDecisionVars] / tableau[row][pivotCol]) < minRatio)
 			{
-			    minRatio = tableau[i][numConstraints + numDecisionVars] / tableau[i][pivotCol];
-			    pivotRow = i;
+			    minRatio = tableau[row][numConstraints + numDecisionVars] / tableau[row][pivotCol];
+			    pivotRow = row;
 			}
 		    }
 		}
 		// Pivot the table to (hopefully) increase z.
-                std::cout << "Pivot on row " << pivotRow << " and column " << pivotCol << std::endl;
 		Pivot(tableau, &pivotRow, &pivotCol, &numDecisionVars, &numConstraints);
                 numIter++;
-                for (int i = 0; i < numConstraints + 1; i++) {
-                    for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) {
-		        std::cout << tableau[i][j] << "  ";
-                    }
-                std::cout << std::endl;
-	        }
-                std::cout << std::endl;
-            }
-	}
-    }
+	    }
+        }
+    } // end while loop
 
     if (maxIter - numIter < 2)
         sol.SetErrorCode(EXCEEDED_MAX_ITERATIONS);
 
     // free memory
-    delete [] optimalValues;
     for (int i = 0; i < numConstraints + 1; i++)
-    {
         delete [] tableau[i];
-    }
     delete [] tableau;
 
     return sol;

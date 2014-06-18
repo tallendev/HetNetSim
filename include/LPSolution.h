@@ -9,6 +9,8 @@
 #ifndef LPSOLUTION_H
 #define LPSOLUTION_H
 
+#include <vector>
+
 /**
  * This class will represent a linear program solution. 
  */
@@ -16,14 +18,14 @@ class LPSolution
 {
     private:
         int errorCode;
-        float* optimalValues; // an array of the optimal values for the decision variables
+        std::vector<float> optimalValues; // the optimal values for the decision variables
     public:
         LPSolution();
         ~LPSolution();
         int GetErrorCode();
         void SetErrorCode(int code);
-        void SetOptimalValues(float optimalValues[]);
-        float GetOptimalValues();
+        void SetOptimalValues(std::vector<float> optimalValues);
+        std::vector<float> GetOptimalValues();
 
 };
 

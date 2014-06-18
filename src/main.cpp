@@ -10,7 +10,12 @@ int main(void)
     pTestProblem->AddConstraint("2 3 1 5");
     pTestProblem->AddConstraint("4 1 2 11");
     pTestProblem->AddConstraint("3 4 2 8");
-    Solver::getInstance().SimplexSolve(pTestProblem);
+    LPSolution answer = Solver::getInstance().SimplexSolve(pTestProblem);
+    std::cout << "answer error code = " << answer.GetErrorCode() << std::endl;
+    std::vector<float> answervals = answer.GetOptimalValues();
+    std::cout << "answer values: " << answervals[0] << std::endl; 
+    std::cout << "answer values: " << answervals[1] << std::endl; 
+    std::cout << "answer values: " << answervals[2] << std::endl; 
     delete pTestProblem;
     return 0;
 }

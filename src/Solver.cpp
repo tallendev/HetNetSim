@@ -13,11 +13,19 @@
 #include <string>
 #include <string.h>
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <vector>
 
 unsigned long long choose(unsigned long long n, unsigned long long k);
+
+/** 
+ * Rounding errors may cause numbers very close to zero to be chosen as
+ * entering variables, so a zero toleance is used to count very small 
+ * numbers as zero.
+ */
+const double ZERO_TOLERANCE = 0.00001;
 
 /**
  * Implementation of classic simplex method to solving linear programs.
@@ -33,6 +41,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
     // TODO: check for infeasibility
     // TODO: check for cycling
+    // TODO: add support for minimizing
 
     LPSolution sol;
     // declare constants for the solution's error code field
@@ -41,7 +50,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     const int UNBOUNDED = 200;
     const int EXCEEDED_MAX_ITERATIONS = 300; 
     // const int INFEASIBLE = 400;
-
+    
     int numDecisionVars = 0;
     int numConstraints = lp->GetConstraints()->GetSize();
     double** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
@@ -53,17 +62,17 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     while (numIter < maxIter && stay)
     {
         // Determine if the solution is optimal or a pivot is needed.
-        double maxCoeff = 0;
+        double maxCoeff = ZERO_TOLERANCE;
         int pivotCol = -1;
-	for (int var = 0; var < numDecisionVars + numConstraints; var++)
+	for (int col = 0; col < numDecisionVars + numConstraints; col++)
 	{
-	    if (tableau[numConstraints][var] > maxCoeff)
+	    if (tableau[numConstraints][col] > maxCoeff)
 	    {
-		maxCoeff = tableau[numConstraints][var];
-		pivotCol = var;
+		maxCoeff = tableau[numConstraints][col];
+		pivotCol = col;
 	    }
 	}
-	if (maxCoeff == 0)
+	if (maxCoeff == ZERO_TOLERANCE)
 	{
 	    sol.SetErrorCode(SOLVED);
 
@@ -82,7 +91,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
                 int solutionRow = -1; // theorectically redundant
                 for (int row = 0; row < numConstraints + 1; row++)
                 {
-                    if (tableau[row][col] != 0)
+                    if (std::abs(tableau[row][col]) > ZERO_TOLERANCE)
                     {
                         if (tableau[row][col] != 1 || foundOne)
                         {
@@ -106,13 +115,13 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	else
 	{
 	    // Check if all entries in pivotCol are <= 0
-	    double maxVar = 0;
-	    for (int i = 0; i < numConstraints; i++)
+	    double maxVar = ZERO_TOLERANCE;
+	    for (int row = 0; row < numConstraints; row++)
 	    {
-		if (tableau[i][pivotCol] > maxVar)
-		    maxVar = tableau[i][pivotCol];
+		if (tableau[row][pivotCol] > maxVar)
+		    maxVar = tableau[row][pivotCol];
 	    }
-	    if (maxVar == 0)
+	    if (maxVar == ZERO_TOLERANCE)
 	    {
 		sol.SetErrorCode(UNBOUNDED);
                 stay = false; // break out of the loop to return
@@ -124,7 +133,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 		double minRatio = DBL_MAX;
 		for (int row = 0; row < numConstraints; row++)
 		{
-		    if (tableau[row][pivotCol] > 0)
+		    if (tableau[row][pivotCol] > ZERO_TOLERANCE)
 		    {
 			if ((tableau[row][numConstraints + numDecisionVars] / tableau[row][pivotCol]) < minRatio)
 			{
@@ -229,7 +238,7 @@ void Solver::Pivot(double** tableau, int* pivotRow, int* pivotCol,
     }
     for (int row = 0; row < *numConstraints + 1; row++)
     {
-        if (tableau[row][*pivotCol] != 0 && row != *pivotRow)
+        if (std::abs(tableau[row][*pivotCol]) > ZERO_TOLERANCE && row != *pivotRow)
         {
             double multiple = tableau[row][*pivotCol] / tableau[*pivotRow][*pivotCol];
             for (int col = 0; col < *numConstraints + *numDecisionVars + 1; col++)

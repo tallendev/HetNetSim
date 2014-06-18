@@ -16,10 +16,14 @@ class LPSolution
 {
     private:
         int errorCode;
+        float* optimalValues; // an array of the optimal values for the decision variables
     public:
         LPSolution();
-        int CheckErrorCode();
+        ~LPSolution();
+        int GetErrorCode();
         void SetErrorCode(int code);
+        void SetOptimalValues(float optimalValues[]);
+        float GetOptimalValues();
 
 };
 

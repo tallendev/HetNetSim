@@ -11,6 +11,7 @@
 #include "Solver.h"
 #include "float.h"
 #include <string>
+#include <string.h>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
@@ -29,12 +30,24 @@ unsigned long long choose(unsigned long long n, unsigned long long k);
  */
 LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
-    static LPSolution sol;
+    // TODO: check for infeasibility
+    // TODO: check for cycling
+
+    LPSolution sol;
+    // declare constants for the solution's error code field
+    const int SOLVED = 0;
+    // 100 is default for LPSolution.errorCode
+    const int UNBOUNDED = 200;
+    const int EXCEEDED_MAX_ITERATIONS = 300; 
+    // const int INFEASIBLE = 400;
+
     int numDecisionVars = 0;
     int numConstraints = lp->GetConstraints()->GetSize();
     float** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
-    // TODO: check for infeasibility
-    unsigned long long maxIter = choose((unsigned long long) numConstraints + numDecisionVars, 
+    float* optimalValues;
+    optimalValues = new float[numDecisionVars];
+    memset(optimalValues, 0, sizeof(*optimalValues) * numDecisionVars);
+    unsigned long long maxIter = choose((unsigned long long) numConstraints + (unsigned long long) numDecisionVars, 
                                         (unsigned long long) numConstraints);
     unsigned long long numIter = 0; // number of iterations completed.
     while (numIter < maxIter)
@@ -52,15 +65,45 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	}
 	if (maxCoeff == 0)
 	{
-	    // this is an optimal solution
-	    sol.SetErrorCode(0);
-            // TODO: poplulate LPSolution
-            for (int i = 0; i < numConstraints + 1; i++)
+	    sol.SetErrorCode(SOLVED);
+
+            // display the matrix 
+            for (int i = 0; i < numConstraints + 1; i++) {
+                for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) 
+		    std::cout << tableau[i][j] << "  ";
+                std::cout << std::endl;
+	    }
+
+            // evaluate the final matrix for the values of each decision variable
+            bool foundOne = false; // set to true if you find a one
+            bool foundNonZero = false; // set to true if you find something other than a zero or one
+            int solutionRow = -1;
+            for (int col = 0; col < numDecisionVars; col++)
             {
-                delete [] tableau[i];
+                for (int row = 0; row < numConstraints + 1; row++)
+                {
+                    if (tableau[row][col] != 0)
+                    {
+                        if (tableau[row][col] != 1 || foundOne)
+                        {
+                            foundNonZero = true;
+                        }
+                        else if (tableau[row][col] == 1)
+                        {
+                            foundOne = true;
+                            solutionRow = row;
+                        }
+                    }
+                }
+                if (foundOne && !foundNonZero)
+                {
+                   std::cout << "writing " << tableau[solutionRow][numConstraints + numDecisionVars] <<
+                                " to column " << col << " in optimalValues." << std::endl;
+                   optimalValues[col] = tableau[solutionRow][numConstraints + numDecisionVars];
+                }
             }
-            delete [] tableau;
-            return sol;
+            sol.SetOptimalValues(optimalValues); 
+            numIter = maxIter; // break out of the loop to return
 	}
 	else
 	{
@@ -73,14 +116,8 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	    }
 	    if (maxVar == 0)
 	    {
-		// The problem is unbounded.
-		sol.SetErrorCode(100);
-                for (int i = 0; i < numConstraints + 1; i++)
-                {
-                    delete [] tableau[i];
-                }
-                delete [] tableau;
-		return sol;
+		sol.SetErrorCode(UNBOUNDED);
+                numIter = maxIter; // break out of the loop to return
 	    }
 	    else
 	    {
@@ -99,23 +136,25 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 		    }
 		}
 		// Pivot the table to (hopefully) increase z.
+                std::cout << "Pivot on row " << pivotRow << " and column " << pivotCol << std::endl;
 		Pivot(tableau, &pivotRow, &pivotCol, &numDecisionVars, &numConstraints);
                 numIter++;
+                for (int i = 0; i < numConstraints + 1; i++) {
+                    for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) {
+		        std::cout << tableau[i][j] << "  ";
+                    }
+                std::cout << std::endl;
+	        }
+                std::cout << std::endl;
             }
 	}
     }
 
-    /**
-     * For debugging, here's code for displaying the matrix.
-     */
-    for (int i = 0; i < numConstraints + 1; i++) {
-        for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) {
-            std::cout << tableau[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
+    if (maxIter - numIter < 2)
+        sol.SetErrorCode(EXCEEDED_MAX_ITERATIONS);
 
-    /* May need to be moved later if tableau exists in LPSolution. */
+    // free memory
+    delete [] optimalValues;
     for (int i = 0; i < numConstraints + 1; i++)
     {
         delete [] tableau[i];
@@ -141,7 +180,7 @@ unsigned long long choose(unsigned long long n, unsigned long long k)
     unsigned long long r = 1;
     if (k > n)
         // invalid parameters
-        return r = -1;
+        return r;
     for (unsigned long long d = 1; d <= k; ++d, --n)
     {
         unsigned long long g = gcd(r, d);
@@ -149,7 +188,7 @@ unsigned long long choose(unsigned long long n, unsigned long long k)
         unsigned long long t = n / (d / g);
         if (r > std::numeric_limits<unsigned long long>::max() / t)
             // overflow error
-            return r = -2;
+            return r;
         r *= t;
     }
     return r;

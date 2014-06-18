@@ -27,9 +27,17 @@ std::string LinearProgram::GetEquation()
 }
 
 /**
- * GetConstraints method. returns the linked list of constraint equations.
+ * GetLeqConstraints method. returns the linked list of <= constraint equations.
  */
-LinkedList<std::string>* LinearProgram:: GetConstraints()
+LinkedList<std::string>* LinearProgram:: GetLeqConstraints()
 {
-    return &constraints;
+    return &leqConstraints;
+}
+
+/**
+ * GetEqConstraints method. returns the linked list of = constraint equations.
+ */
+LinkedList<std::string>* LinearProgram:: GetEqConstraints()
+{
+    return &eqConstraints;
 }

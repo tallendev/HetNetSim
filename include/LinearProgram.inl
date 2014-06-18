@@ -10,13 +10,23 @@
 #define LINEARPROGRAM_INL
 
 /**
- * Add a constraint to the list of constrains.
+ * Add an inequality constraint to the list of constrains.
  *
- * Param: constrain - The constraint to be added.
+ * Param: leqConstraint - The <= constraint to be added.
  */
-inline void LinearProgram::AddConstraint(std::string constraint)
+inline void LinearProgram::AddLeqConstraint(std::string leqConstraint)
 {
-    constraints.Add(constraint);
+    leqConstraints.Add(leqConstraint);
+}
+
+/**
+ * Add an equality constraint to the list of constrains.
+ *
+ * Param: eqConstraint - The = constraint to be added.
+ */
+inline void LinearProgram::AddEqConstraint(std::string eqConstraint)
+{
+    eqConstraints.Add(eqConstraint);
 }
 
 /**

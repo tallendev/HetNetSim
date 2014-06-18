@@ -6,10 +6,9 @@
 int main(void)
 {
     LinearProgram* pTestProblem = new LinearProgram("5 4 3");
-    pTestProblem->SetObjective(true);
-    pTestProblem->AddConstraint("2 3 1 5");
-    pTestProblem->AddConstraint("4 1 2 11");
-    pTestProblem->AddConstraint("3 4 2 8");
+    pTestProblem->AddLeqConstraint("2 3 1 5");
+    pTestProblem->AddLeqConstraint("4 1 2 11");
+    pTestProblem->AddLeqConstraint("3 4 2 8");
     LPSolution answer = Solver::getInstance().SimplexSolve(pTestProblem);
     std::cout << "answer error code = " << answer.GetErrorCode() << std::endl;
     std::vector<double> answervals = answer.GetOptimalValues();

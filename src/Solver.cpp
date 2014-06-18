@@ -51,8 +51,10 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     // const int INFEASIBLE = 400;
     
     int numDecisionVars = 0;
-    int numConstraints = lp->GetConstraints()->GetSize();
-    double** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
+    int numLeqConstraints = lp->GetLeqConstraints()->GetSize();
+    int numEqConstraints = lp->GetEqConstraints()->GetSize();
+    int numConstraints = numLeqConstraints + numEqConstraints;
+    double** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints, &numLeqConstraints, &numEqConstraints);
     std::vector<double> optimalValues (numDecisionVars, 0);
     unsigned long long maxIter = choose((unsigned long long) numConstraints + (unsigned long long) numDecisionVars, 
                                         (unsigned long long) numConstraints);
@@ -189,7 +191,7 @@ unsigned long long choose(unsigned long long n, unsigned long long k)
     return r;
 }
 
-double** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints)
+double** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints, int* numLeqConstraints, int* numEqConstraints)
 {
     std::istringstream countVars(lp->GetEquation());
     std::string token;
@@ -203,12 +205,13 @@ double** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numCo
     {
         tableau[i] = new double[(*numDecisionVars + *numConstraints + 1) * *numConstraints]();
     }
-    LinkedList<std::string>* listOfConstraints = lp->GetConstraints();
-    LinkedList<std::string>::ListIterator constraintsIter = listOfConstraints->Iterator();
-    for (int i = 0; i < *numConstraints; i++)
+    // populate the tableau with data from the inequality constraints
+    LinkedList<std::string>* listOfLeqConstraints = lp->GetLeqConstraints();
+    LinkedList<std::string>::ListIterator leqConstraintsIter = listOfLeqConstraints->Iterator();
+    for (int i = 0; i < *numLeqConstraints; i++)
     {
         int j = 0;
-        std::istringstream split(constraintsIter.Next());
+        std::istringstream split(leqConstraintsIter.Next());
         while (std::getline(split, token, ' '))
         {
             std::istringstream(token) >> tableau[i][j++];
@@ -219,6 +222,22 @@ double** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numCo
         tableau[i][*numDecisionVars + i] = 1;
     }
     
+    // populate the tableau with data from the equality constraints
+    LinkedList<std::string>* listOfEqConstraints = lp->GetEqConstraints();
+    LinkedList<std::string>::ListIterator EqConstraintsIter = listOfEqConstraints->Iterator();
+    for (int i = *numLeqConstraints; i < *numEqConstraints; i++)
+    {
+        int j = 0;
+        std::istringstream split(EqConstraintsIter.Next());
+        while (std::getline(split, token, ' '))
+        {
+            std::istringstream(token) >> tableau[i][j++];
+        }
+        j--;
+        tableau[i][*numDecisionVars + *numConstraints] = tableau[i][j];
+        tableau[i][j] = 0;
+    }
+     
     std::istringstream split(lp->GetEquation());
     for (int i = 0; std::getline(split, token, ' '); i++)
     {

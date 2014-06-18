@@ -20,8 +20,10 @@ class Solver
 {
     private:
         Solver() {};
-        double** lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints);
-        void Pivot(double** tableau, int* pivotRow, int* pivotCol, int* numDecisionVars, int* numConstraints);
+        double** lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints, 
+                             int* numLeqConstraints, int* numEqConstraints);
+        void Pivot(double** tableau, int* pivotRow, int* pivotCol, 
+                   int* numDecisionVars, int* numConstraints);
         // Don't implement these, they prevent copies from being made.
         Solver(Solver const& copy);
         Solver& operator=(Solver const& copy);

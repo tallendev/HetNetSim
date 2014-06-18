@@ -18,14 +18,14 @@ class LPSolution
 {
     private:
         int errorCode;
-        std::vector<float> optimalValues; // the optimal values for the decision variables
+        std::vector<double> optimalValues; // the optimal values for the decision variables
     public:
         LPSolution();
         ~LPSolution();
         int GetErrorCode();
         void SetErrorCode(int code);
-        void SetOptimalValues(std::vector<float> optimalValues);
-        std::vector<float> GetOptimalValues();
+        void SetOptimalValues(std::vector<double> optimalValues);
+        std::vector<double> GetOptimalValues();
 
 };
 

@@ -15,7 +15,7 @@
  */
 LPSolution::LPSolution() : errorCode(100)
 {
-    std::vector<float> optimalValues;
+    std::vector<double> optimalValues;
 }
 
 /**
@@ -51,7 +51,7 @@ void LPSolution::SetErrorCode(int code)
  * This is used by the Solver to save an array of floats
  * that are the optimal values for the decision variables.
  */
-void LPSolution::SetOptimalValues( std::vector<float> inOptimalValues)
+void LPSolution::SetOptimalValues( std::vector<double> inOptimalValues)
 {
     optimalValues = inOptimalValues;
 }
@@ -61,7 +61,7 @@ void LPSolution::SetOptimalValues( std::vector<float> inOptimalValues)
  * You should call this if the error code is 0 and you want the 
  * optimal values for the decision variables.
  */
-std::vector<float> LPSolution::GetOptimalValues()
+std::vector<double> LPSolution::GetOptimalValues()
 {
     return optimalValues;
 }

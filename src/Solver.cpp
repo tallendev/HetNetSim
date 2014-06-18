@@ -44,8 +44,8 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 
     int numDecisionVars = 0;
     int numConstraints = lp->GetConstraints()->GetSize();
-    float** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
-    std::vector<float> optimalValues (numDecisionVars, 0);
+    double** tableau = lpToTableau(lp, &numDecisionVars, &numConstraints);
+    std::vector<double> optimalValues (numDecisionVars, 0);
     unsigned long long maxIter = choose((unsigned long long) numConstraints + (unsigned long long) numDecisionVars, 
                                         (unsigned long long) numConstraints);
     unsigned long long numIter = 0; // number of iterations completed.
@@ -53,7 +53,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     while (numIter < maxIter && stay)
     {
         // Determine if the solution is optimal or a pivot is needed.
-        float maxCoeff = 0;
+        double maxCoeff = 0;
         int pivotCol = -1;
 	for (int var = 0; var < numDecisionVars + numConstraints; var++)
 	{
@@ -106,7 +106,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 	else
 	{
 	    // Check if all entries in pivotCol are <= 0
-	    float maxVar = 0;
+	    double maxVar = 0;
 	    for (int i = 0; i < numConstraints; i++)
 	    {
 		if (tableau[i][pivotCol] > maxVar)
@@ -181,7 +181,7 @@ unsigned long long choose(unsigned long long n, unsigned long long k)
     return r;
 }
 
-float** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints)
+double** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints)
 {
     std::istringstream countVars(lp->GetEquation());
     std::string token;
@@ -190,10 +190,10 @@ float** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numCon
         (*numDecisionVars)++;
     }
 
-    float** tableau = new float*[*numConstraints + 1]();  //implement safe calloc
+    double** tableau = new double*[*numConstraints + 1]();  //implement safe calloc
     for (int i = 0; i < *numConstraints + 1; i++)
     {
-        tableau[i] = new float[(*numDecisionVars + *numConstraints + 1) * *numConstraints]();
+        tableau[i] = new double[(*numDecisionVars + *numConstraints + 1) * *numConstraints]();
     }
     LinkedList<std::string>* listOfConstraints = lp->GetConstraints();
     LinkedList<std::string>::ListIterator constraintsIter = listOfConstraints->Iterator();
@@ -219,10 +219,10 @@ float** Solver::lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numCon
     return tableau;
 }
 
-void Solver::Pivot(float** tableau, int* pivotRow, int* pivotCol,
+void Solver::Pivot(double** tableau, int* pivotRow, int* pivotCol,
                    int* numDecisionVars, int* numConstraints)
 {
-    float pivotNumber = tableau[*pivotRow][*pivotCol];
+    double pivotNumber = tableau[*pivotRow][*pivotCol];
     for (int col = 0; col < *numConstraints + *numDecisionVars + 1; col++)
     {
         tableau[*pivotRow][col] = tableau[*pivotRow][col] / pivotNumber;
@@ -231,7 +231,7 @@ void Solver::Pivot(float** tableau, int* pivotRow, int* pivotCol,
     {
         if (tableau[row][*pivotCol] != 0 && row != *pivotRow)
         {
-            float multiple = tableau[row][*pivotCol] / tableau[*pivotRow][*pivotCol];
+            double multiple = tableau[row][*pivotCol] / tableau[*pivotRow][*pivotCol];
             for (int col = 0; col < *numConstraints + *numDecisionVars + 1; col++)
             {
                 tableau[row][col] = tableau[row][col] - (multiple * tableau[*pivotRow][col]);

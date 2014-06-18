@@ -16,14 +16,11 @@ class LinearProgram
         std::string equation; 
         // example: 2 3 -4
         // meaning: 2x1 + 3x2 - 4x3 = z
-        bool objective; // if true, maximize z, else minimize
         LinkedList<std::string> constraints;
 
     public:
         LinearProgram(std::string equation);
         ~LinearProgram();
-        void SetObjective(bool maxOrMin);
-        bool GetObjective(); 
         void AddConstraint(std::string constraint);
         // example: 3 0 -7 42
         // meaning: 3x1 -7x3 <= 42

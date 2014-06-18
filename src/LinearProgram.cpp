@@ -18,26 +18,6 @@ LinearProgram::LinearProgram(std::string equation) : equation (equation)
 {
 }
 
-
-/**
- * SetObjective method
- *
- * Param: maxOrMin - if true, we try to maximize the equation.
- * Otherwise, try to minimize it.
- */
-void LinearProgram::SetObjective(bool maxOrMin)
-{
-    objective = maxOrMin;
-}
-
-/**
- * GetObjective method. Returns the boolean value of objective.
- */
-bool LinearProgram::GetObjective() 
-{
-    return objective;
-}
-
 /**
  * GetEquation method. Returns the equation as a string.
  */

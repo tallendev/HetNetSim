@@ -41,7 +41,6 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
     // TODO: check for infeasibility
     // TODO: check for cycling
-    // TODO: add support for minimizing
 
     LPSolution sol;
     // declare constants for the solution's error code field

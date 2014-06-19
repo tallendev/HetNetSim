@@ -140,7 +140,7 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
 
     LPSolution relatedSol;
     Solve(relatedTableau, &relatedSol); 
-    // std::cout << relatedSol.GetZValue() << std::endl;
+    std::cout << relatedSol.GetZValue() << std::endl;
     delete relatedTableau;
     if (std::abs(relatedSol.GetZValue()) < ZERO_TOLERANCE || 
                  relatedSol.GetZValue() > ZERO_TOLERANCE)
@@ -221,12 +221,13 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
 	{
 	    sol->SetErrorCode(SOLVED);
 
-            /* display the matrix 
+            //display the matrix 
+            std::cout << "in the solver " << std::endl;
             for (int i = 0; i < numConstraints + 1; i++) {
                 for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) 
 		    std::cout << (*tableau)[i][j] << "  ";
                 std::cout << std::endl;
-	    }*/
+	    }
             
             // evaluate the final matrix for the values of each decision variable
             for (int col = 0; col < numDecisionVars; col++)

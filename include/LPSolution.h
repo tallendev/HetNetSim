@@ -19,6 +19,7 @@ class LPSolution
     private:
         int errorCode;
         std::vector<double> optimalValues; // the optimal values for the decision variables
+        double zValue; // optimal value of the objective equation
     public:
         LPSolution();
         ~LPSolution();
@@ -26,6 +27,8 @@ class LPSolution
         void SetErrorCode(int code);
         void SetOptimalValues(std::vector<double> optimalValues);
         std::vector<double> GetOptimalValues();
+        void SetZValue(double zValue);
+        double GetZValue();
 
 };
 

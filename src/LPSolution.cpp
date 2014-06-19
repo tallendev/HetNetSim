@@ -65,3 +65,21 @@ std::vector<double> LPSolution::GetOptimalValues()
 {
     return optimalValues;
 }
+
+/**
+ * SetZValue method.
+ * This sets the optimal value of the objective equation.
+ */
+void LPSolution::SetZValue(double inZValue)
+{
+    zValue = inZValue;
+}
+
+/**
+ * GetZValue method.
+ * This returns the optimal value of the objective equation.
+ */
+double LPSolution::GetZValue()
+{
+    return zValue;
+}

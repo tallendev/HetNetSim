@@ -15,15 +15,22 @@
 #include "LinearProgram.h"
 #include "LPSolution.h"
 #include <sstream>
+#include <vector>
+
+typedef std::vector<std::vector<double> > dblmatrix;
 
 class Solver
 {
     private:
         Solver() {};
-        double** lpToTableau(LinearProgram* lp, int* numDecisionVars, int* numConstraints, 
-                             int* numLeqConstraints, int* numEqConstraints);
-        void Pivot(double** tableau, int* pivotRow, int* pivotCol, 
-                   int* numDecisionVars, int* numConstraints);
+        int numDecisionVars;
+        int numConstraints;
+        int numLeqConstraints;
+        int numEqConstraints;
+        void Solve(dblmatrix* tableau, LPSolution* sol);
+        void lpToTableau (LinearProgram* lp, dblmatrix* tableau);
+        void Pivot (dblmatrix* tableau, int* pivotRow, int* pivotCol);
+        bool CheckFeasibility (dblmatrix* tableau);
         // Don't implement these, they prevent copies from being made.
         Solver(Solver const& copy);
         Solver& operator=(Solver const& copy);

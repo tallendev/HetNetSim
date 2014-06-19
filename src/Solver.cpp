@@ -134,12 +134,13 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
     std::cout << "related matrix" << std::endl;
     for (int i = 0; i < numConstraints + 1; i++) {
         for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) 
-            std::cout << (*relatedTableau)[i][j] << "  ";
+            std::cout << (*relatedTableau)[i][j] << "    ";
     std::cout << std::endl;
     }*/
 
     LPSolution relatedSol;
     Solve(relatedTableau, &relatedSol); 
+    // std::cout << relatedSol.GetZValue() << std::endl;
     delete relatedTableau;
     if (std::abs(relatedSol.GetZValue()) < ZERO_TOLERANCE || 
                  relatedSol.GetZValue() > ZERO_TOLERANCE)
@@ -171,7 +172,7 @@ void Solver::lpToTableau(LinearProgram* lp, dblmatrix* tableau)
     // populate the tableau with data from the equality constraints
     LinkedList<std::string>* listOfEqConstraints = lp->GetEqConstraints();
     LinkedList<std::string>::ListIterator EqConstraintsIter = listOfEqConstraints->Iterator();
-    for (int i = numLeqConstraints; i < numEqConstraints; i++)
+    for (int i = numLeqConstraints; i < numConstraints; i++)
     {
         int j = 0;
         std::istringstream split(EqConstraintsIter.Next());

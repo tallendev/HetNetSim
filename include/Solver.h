@@ -23,14 +23,15 @@ class Solver
 {
     private:
         Solver() {};
-        int numDecisionVars;
-        int numConstraints;
-        int numLeqConstraints;
-        int numEqConstraints;
+        unsigned long numDecisionVars;
+        unsigned long numConstraints;
+        unsigned long numLeqConstraints;
+        unsigned long numEqConstraints;
         void Solve(dblmatrix* tableau, LPSolution* sol);
         void lpToTableau (LinearProgram* lp, dblmatrix* tableau);
-        void Pivot (dblmatrix* tableau, int* pivotRow, int* pivotCol);
+        void Pivot (dblmatrix* tableau, int pivotRow, int pivotCol);
         bool CheckFeasibility (dblmatrix* tableau);
+        void DisplayMatrix(dblmatrix* matrix);
         // Don't implement these, they prevent copies from being made.
         Solver(Solver const& copy);
         Solver& operator=(Solver const& copy);

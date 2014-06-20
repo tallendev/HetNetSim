@@ -43,7 +43,8 @@ const int INFEASIBLE = 400;
  */
 LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
-    // TODO: check for cycling
+    // TODO: check for cycling?
+    // TODO: implement a struct
 
     LPSolution sol;
     
@@ -59,19 +60,14 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     }
     dblmatrix* tableau = new dblmatrix;
     tableau->resize(numConstraints + 1, 
-                    std::vector<double>(numDecisionVars + numConstraints + 1, 0));
+                    std::vector<double>(numDecisionVars + numLeqConstraints + 1, 0));
 
     lpToTableau (lp, tableau);
 
-    /* display the matrix 
     std::cout << "original matrix" << std::endl;
-    for (int i = 0; i < numConstraints + 1; i++) {
-        for (int j = 0; j < numConstraints + numDecisionVars + 1; j++)
-            std::cout << (*tableau)[i][j] << "  ";
-    std::cout << std::endl;
-    } */
-    
-    if (CheckFeasibility (tableau))
+    DisplayMatrix(tableau);
+
+    if (CheckFeasibility(tableau))
         Solve(tableau, &sol);
     else
         sol.SetErrorCode(INFEASIBLE);
@@ -79,6 +75,16 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
     delete tableau;
 
     return sol;
+}
+
+void Solver::DisplayMatrix(dblmatrix* matrix)
+{
+    for (int i = 0; i < matrix->size(); i++) {
+       for (int j = 0; j < ((*matrix)[0]).size(); j++)
+           std::cout << (*matrix)[i][j] << "  ";
+       std::cout << std::endl;
+    }
+    return;
 }
 
 unsigned long long gcd(unsigned long long x, unsigned long long y)
@@ -113,34 +119,79 @@ unsigned long long choose(unsigned long long n, unsigned long long k)
 
 bool Solver::CheckFeasibility(dblmatrix* tableau)
 {
+    // If there are only inequality constraints ond no b values < 0, it's solvable.
+    int negBValues = 0; // number of inequalities with b < 0
+    if (numEqConstraints == 0)
+    {
+        for (int i = 0; i < numLeqConstraints; i++)
+        {
+            if ((*tableau)[i][numDecisionVars + numLeqConstraints] < 0)
+                negBValues++;
+        }
+        if (negBValues == 0)
+            return true;
+    } 
     // formulate a related solvable problem based on the tableau and pass it to the solver.
+    int numColumns = numDecisionVars + numConstraints + negBValues + 1;
     dblmatrix* relatedTableau = new dblmatrix;
-    relatedTableau->resize(numConstraints + 1, 
-                           std::vector<double>(numDecisionVars + numConstraints + 1, 0));
+    relatedTableau->resize(numConstraints + 1, std::vector<double>(numColumns, 0));
     for (int i = 0; i < numConstraints; i++)
     {
-        (*relatedTableau)[numConstraints][numDecisionVars + i] = -1;
-        (*relatedTableau)[i][numDecisionVars + numConstraints] = 
-               (*tableau)[i][numDecisionVars + numConstraints];
-        if ((*tableau)[i][numDecisionVars + numConstraints] >= 0)
-            (*relatedTableau)[i][numDecisionVars + i] = 1;
-        else
-            (*relatedTableau)[i][numDecisionVars + i] = -1;
-        for (int j = 0; j < numDecisionVars; j++)
+        for (int j = 0; j < numDecisionVars + numLeqConstraints; j++)
             (*relatedTableau)[i][j] = (*tableau)[i][j];
+        (*relatedTableau)[i][numColumns - 1] = 
+               (*tableau)[i][numDecisionVars + numLeqConstraints];
+    }
+    int colCounter = 0;
+    for (int i = 0; i < numLeqConstraints; i++)
+    {
+        if ((*tableau)[i][numDecisionVars + numLeqConstraints] < 0)
+            (*relatedTableau)[i][numDecisionVars + numLeqConstraints + colCounter++] = -1;
+    }
+    for (int i = numLeqConstraints; i < numConstraints; i++)
+    {
+        if ((*tableau)[i][numDecisionVars + numLeqConstraints] < 0)
+            (*relatedTableau)[i][numDecisionVars + numLeqConstraints + colCounter++] = -1;
+        else
+            (*relatedTableau)[i][numDecisionVars + numLeqConstraints + colCounter++] = 1;
+    }
+    for (int i = numDecisionVars + numLeqConstraints; i < numColumns - 1; i++)
+    {
+        (*relatedTableau)[numConstraints][i] = -1;
     }
 
-    /* display the matrix 
     std::cout << "related matrix" << std::endl;
-    for (int i = 0; i < numConstraints + 1; i++) {
-        for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) 
-            std::cout << (*relatedTableau)[i][j] << "    ";
-    std::cout << std::endl;
-    }*/
+    DisplayMatrix(relatedTableau);
+     
+    for (int i = numDecisionVars + numLeqConstraints; i < numColumns - 1; i++)
+    {
+        for (int j = 0; j < numConstraints; j++)
+        {
+            if ((*relatedTableau)[j][i] == -1)
+                Pivot(relatedTableau, j, i);
+        }
+    }        
+    bool positiveValue = false;
+    for (int i = 0; i < numColumns - 1; i++)
+    {
+        if ((*relatedTableau)[numConstraints][i] > ZERO_TOLERANCE)
+            positiveValue = true;
+    }
+    if (!positiveValue)
+    {
+        for (int i = numDecisionVars + numLeqConstraints; i < numColumns - 1; i++)
+            if ((*relatedTableau)[numConstraints][i] == -1)
+                for (int j = 0; j < numConstraints; j++)
+                    if ((*relatedTableau)[j][i] == 1)
+                        Pivot(relatedTableau, j, i);
+    }
+
+    std::cout << "related matrix post-pivoting" << std::endl;
+    DisplayMatrix(relatedTableau);
 
     LPSolution relatedSol;
     Solve(relatedTableau, &relatedSol); 
-    std::cout << relatedSol.GetZValue() << std::endl;
+    std::cout << "relatedSol z = " << relatedSol.GetZValue() << std::endl;
     delete relatedTableau;
     if (std::abs(relatedSol.GetZValue()) < ZERO_TOLERANCE || 
                  relatedSol.GetZValue() > ZERO_TOLERANCE)
@@ -164,7 +215,7 @@ void Solver::lpToTableau(LinearProgram* lp, dblmatrix* tableau)
             std::istringstream(token) >> (*tableau)[i][j++];
         }
         j--;
-        (*tableau)[i][numDecisionVars + numConstraints] = (*tableau)[i][j];
+        (*tableau)[i][numDecisionVars + numLeqConstraints] = (*tableau)[i][j];
         (*tableau)[i][j] = 0;
         (*tableau)[i][numDecisionVars + i] = 1;
     }
@@ -182,8 +233,9 @@ void Solver::lpToTableau(LinearProgram* lp, dblmatrix* tableau)
             std::istringstream(token) >> (*tableau)[i][j++];
         }
         j--;
-        (*tableau)[i][numDecisionVars + numConstraints] = (*tableau)[i][j];
-        (*tableau)[i][j] = 0;
+        (*tableau)[i][numDecisionVars + numLeqConstraints] = (*tableau)[i][j];
+        if (numLeqConstraints > 0)
+            (*tableau)[i][j] = 0;
     }
      
     std::istringstream split(lp->GetEquation());
@@ -197,6 +249,10 @@ void Solver::lpToTableau(LinearProgram* lp, dblmatrix* tableau)
 
 void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
 {
+    int numRows = tableau->size(); 
+    // generally numConstraints + 1
+    int numCols = ((*tableau)[0]).size(); 
+    // generally numDecisionVars + numLeqConstraints + 1
     std::vector<double> optimalValues ((unsigned long) numDecisionVars, 0);
 
     unsigned long long maxIter = choose((unsigned long long) numConstraints + 
@@ -209,7 +265,7 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
         // Determine if the solution is optimal or a pivot is needed.
         double maxCoeff = ZERO_TOLERANCE;
         int pivotCol = -1;
-	for (int col = 0; col < numDecisionVars + numConstraints; col++)
+	for (int col = 0; col < numCols; col++)
 	{
 	    if ((*tableau)[numConstraints][col] > maxCoeff)
 	    {
@@ -221,13 +277,8 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
 	{
 	    sol->SetErrorCode(SOLVED);
 
-            //display the matrix 
-            std::cout << "in the solver " << std::endl;
-            for (int i = 0; i < numConstraints + 1; i++) {
-                for (int j = 0; j < numConstraints + numDecisionVars + 1; j++) 
-		    std::cout << (*tableau)[i][j] << "  ";
-                std::cout << std::endl;
-	    }
+            std::cout << "solved" << std::endl;
+            DisplayMatrix(tableau);
             
             // evaluate the final matrix for the values of each decision variable
             for (int col = 0; col < numDecisionVars; col++)
@@ -235,7 +286,7 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
                 bool foundOne = false; // found a 1 in this column
                 bool foundNonZero = false; // found a nonzero number (except 1st 1)
                 int solutionRow = -1; // theorectically redundant
-                for (int row = 0; row < numConstraints + 1; row++)
+                for (int row = 0; row < numRows; row++)
                 {
                     if (std::abs((*tableau)[row][col]) > ZERO_TOLERANCE)
                     {
@@ -253,11 +304,11 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
                 if (foundOne && !foundNonZero)
                 {
                    optimalValues[(unsigned long) col] = 
-                   (*tableau)[solutionRow][numConstraints + numDecisionVars];
+                   (*tableau)[solutionRow][numCols - 1];
                 }
             }
             sol->SetOptimalValues(optimalValues); 
-            sol->SetZValue(-1 * (*tableau)[numConstraints][numDecisionVars + numConstraints]);
+            sol->SetZValue(-1 * (*tableau)[numRows - 1][numCols - 1]);
             stay = false; // break out of the loop to return
 	}
 	else 
@@ -283,18 +334,20 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
 		{
 		    if ((*tableau)[row][pivotCol] > ZERO_TOLERANCE)
 		    {
-			if (((*tableau)[row][numConstraints + numDecisionVars] / 
+			if (((*tableau)[row][numCols - 1] / 
                              (*tableau)[row][pivotCol]) < minRatio)
 			{
-			    minRatio = (*tableau)[row][numConstraints + numDecisionVars] / 
+			    minRatio = (*tableau)[row][numCols - 1] / 
                                        (*tableau)[row][pivotCol];
 			    pivotRow = row;
 			}
 		    }
 		}
 		// Pivot the table to (hopefully) increase z.
-		Pivot(tableau, &pivotRow, &pivotCol);
+		Pivot(tableau, pivotRow, pivotCol);
                 numIter++;
+		std::cout << "iter " << numIter << std::endl;
+                DisplayMatrix(tableau);
 	    }
         }
     } // end while loop
@@ -305,24 +358,26 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol)
     return;
 }
 
-void Solver::Pivot(dblmatrix* tableau, int* pivotRow, int* pivotCol)
+void Solver::Pivot(dblmatrix* tableau, int pivotRow, int pivotCol)
 {
-    double pivotNumber = (*tableau)[*pivotRow][*pivotCol];
-    for (int col = 0; col < numConstraints + numDecisionVars + 1; col++)
+    int numRows = tableau->size();
+    int numCols = ((*tableau)[0]).size();
+    double pivotNumber = (*tableau)[pivotRow][pivotCol];
+    for (int col = 0; col < numCols; col++)
     {
-        (*tableau)[*pivotRow][col] = (*tableau)[*pivotRow][col] / pivotNumber;
+        (*tableau)[pivotRow][col] = (*tableau)[pivotRow][col] / pivotNumber;
     }
-    for (int row = 0; row < numConstraints + 1; row++)
+    for (int row = 0; row < numRows; row++)
     {
-        if (std::abs((*tableau)[row][*pivotCol]) > ZERO_TOLERANCE && 
-            row != *pivotRow)
+        if (std::abs((*tableau)[row][pivotCol]) > ZERO_TOLERANCE && 
+            row != pivotRow)
         {
-            double multiple = (*tableau)[row][*pivotCol] / 
-                              (*tableau)[*pivotRow][*pivotCol];
-            for (int col = 0; col < numConstraints + numDecisionVars + 1; col++)
+            double multiple = (*tableau)[row][pivotCol] / 
+                              (*tableau)[pivotRow][pivotCol];
+            for (int col = 0; col < numCols; col++)
             {
                 (*tableau)[row][col] = (*tableau)[row][col] - 
-                                       (multiple * (*tableau)[*pivotRow][col]);
+                                       (multiple * (*tableau)[pivotRow][col]);
             }
         }
     }

@@ -29,7 +29,7 @@ class Solver
         unsigned long numEqConstraints;
         void Solve(dblmatrix* tableau, LPSolution* sol);
         void lpToTableau (LinearProgram* lp, dblmatrix* tableau);
-        void Pivot (dblmatrix* tableau, int pivotRow, int pivotCol);
+        void Pivot (dblmatrix* tableau, dblmatrix::size_type pivotRow, dblmatrix::size_type pivotCol);
         bool CheckFeasibility (dblmatrix* tableau);
         void DisplayMatrix(dblmatrix* matrix);
         // Don't implement these, they prevent copies from being made.

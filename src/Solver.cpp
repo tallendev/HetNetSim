@@ -3,7 +3,7 @@
  * to solve other types of problems?). This is a Singleton class that receives
  * LinearProgram objects and returns LinearProgramSolutions. 
  *
- * Version: 06/22/2014
+ * Version: 06/24/2014
  * Author: Tyler Allen
  * Author: Matthew Leeds
  */
@@ -36,10 +36,8 @@ const int INFEASIBLE = 400;
  * Currently assumes:
  * -the problem is in the correct form
  * -the objective function has no constant argument (just coefficients)
- * -all constraints are <=
+ * -all constraints are <= or = 
  * -we are trying to maximize
- * -the problem can be solved
- * -all decision variables must be nonnegative 
  */
 LPSolution Solver::SimplexSolve(LinearProgram* lp)
 {
@@ -283,7 +281,7 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
 		    maxCoeff = (*relatedTableau)[i][pivotCol];
 		}
 	    }
-	    if (maxCoeff < -1 * ZERO_TOLERANCE) // theoretically impossible I think
+	    if (maxCoeff < -1 * ZERO_TOLERANCE) // theoretically impossible 
 	    {
                 relatedSol.SetErrorCode(UNBOUNDED);
                 stay = false;

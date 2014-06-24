@@ -5,10 +5,10 @@
 
 int main(void)
 {
-    LinearProgram* pTestProblem = new LinearProgram("1 -1 1");
-    pTestProblem->AddLeqConstraint("2 -1 2 4");
-    pTestProblem->AddLeqConstraint("2 -3 1 -5");
-    pTestProblem->AddLeqConstraint("-1 1 -2 -1");
+    LinearProgram* pTestProblem = new LinearProgram("3 -7");
+    pTestProblem->AddLeqConstraint("5 10 10");
+    pTestProblem->AddEqConstraint("-3 -10 -10");
+    pTestProblem->AddLeqConstraint("-8 -7 6");
     LPSolution answer = Solver::getInstance().SimplexSolve(pTestProblem);
     std::cout << "answer error code = " << answer.GetErrorCode() << std::endl;
     if (answer.GetErrorCode() == 0) {
@@ -16,7 +16,6 @@ int main(void)
     std::vector<double> answervals = answer.GetOptimalValues();
     std::cout << "answer values: " << answervals[0] << std::endl; 
     std::cout << "answer values: " << answervals[1] << std::endl; 
-    std::cout << "answer values: " << answervals[2] << std::endl; 
     }
     delete pTestProblem;
     return 0;

@@ -27,7 +27,7 @@ class Solver
         unsigned long numConstraints;
         unsigned long numLeqConstraints;
         unsigned long numEqConstraints;
-        void Solve(dblmatrix* tableau, LPSolution* sol);
+        void Solve(dblmatrix* tableau, LPSolution* sol, bool twoPhase);
         void lpToTableau (LinearProgram* lp, dblmatrix* tableau);
         void Pivot (dblmatrix* tableau, dblmatrix::size_type pivotRow, dblmatrix::size_type pivotCol);
         bool CheckFeasibility (dblmatrix* tableau);

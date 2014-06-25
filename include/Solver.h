@@ -19,7 +19,6 @@
 
 class Solver {
     private:
-        Solver() {};
         unsigned long numDecisionVars;
         unsigned long numConstraints;
         unsigned long numLeqConstraints;
@@ -30,11 +29,14 @@ class Solver {
                     unsigned long long pivotCol);
         bool checkFeasibility (double** table);
         void displayMatrix(double** matrix);
+
         // Don't implement these, they prevent copies from being made.
+        Solver() {};
         Solver(Solver const &copy);
         Solver &operator=(Solver const &copy);
 
     public:
+        static constexpr double ZERO_TOLERANCE = 0.0001;
         /**
          * Returns a static instance of solver object. This allows the solver to be
          * created only when needed (lazy), automatically allocated/deallocated, and

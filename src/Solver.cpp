@@ -11,9 +11,6 @@
 #include "Solver.h"
 #include "utils.h"
 #include "float.h"
-#include <string>
-#include <string.h>
-#include <cstdlib>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -21,18 +18,6 @@
 
 
 unsigned long long choose(unsigned long long n, unsigned long long k);
-
-/**
- * Constants-
- * A zero tolerance in case of rounding errors, and
- * errorCode values for LPSolution
- */
-const double ZERO_TOLERANCE = 0.0001;
-const int SOLVED = 0;
-// 100 is the default value
-const int UNBOUNDED = 200;
-const int EXCEEDED_MAX_ITERATIONS = 300;
-const int INFEASIBLE = 400;
 
 /**
  * Implementation of classic simplex method to solving linear programs.
@@ -48,25 +33,20 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
     // TODO: implement a struct
 
     LPSolution sol;
-    std::cout << "Test1\n";
     numLeqConstraints = (unsigned long) lp->getLeqConstraints()->getSize();
     numEqConstraints = (unsigned long) lp->getEqConstraints()->getSize();
     numConstraints = numLeqConstraints + numEqConstraints;
     std::istringstream countVars(lp->getEquation());
     std::string token;
     numDecisionVars = 0;
-    std::cout << "Test2\n";
 
     while (std::getline(countVars, token, ' '))
     {
         numDecisionVars++;
     }
-    std::cout << "Test3\n";
 
     double** table = arrayInit2d(numConstraints + 1, numDecisionVars + numConstraints + 1);
-    std::cout << "Test4\n";
     lpToTable (lp, table);
-    std::cout << "Test5\n";
 
     std::cout << "original matrix" << std::endl;
     displayMatrix(table);
@@ -112,7 +92,7 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
         }
         else
         {
-            sol.setErrorCode(INFEASIBLE);
+            sol.setErrorCode(LPSolution::INFEASIBLE);
         }
     }
 
@@ -333,7 +313,7 @@ bool Solver::checkFeasibility(double** table)
 
         if (minCoeff > -1 * ZERO_TOLERANCE)
         {
-            relatedSol.setErrorCode(SOLVED);
+            relatedSol.setErrorCode(LPSolution::SOLVED);
             std::cout << "related problem solved" << std::endl;
             displayMatrix(relatedTable);
             relatedSol.setZValue(-1 * (relatedTable)[numRows - 1][numColumns - 1]);
@@ -353,7 +333,7 @@ bool Solver::checkFeasibility(double** table)
 
             if (maxCoeff < -1 * ZERO_TOLERANCE) // theoretically impossible
             {
-                relatedSol.setErrorCode(UNBOUNDED);
+                relatedSol.setErrorCode(LPSolution::UNBOUNDED);
                 stay = false;
             }
             else
@@ -385,7 +365,7 @@ bool Solver::checkFeasibility(double** table)
 
     if (numIter == maxIter)
     {
-        relatedSol.setErrorCode(EXCEEDED_MAX_ITERATIONS);
+        relatedSol.setErrorCode(LPSolution::EXCEEDED_MAX_ITERATIONS);
     }
 
     if (relatedSol.getErrorCode() == 0 &&
@@ -526,7 +506,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
         if ( (twoPhase && minCoeff >= -1 * ZERO_TOLERANCE) ||
              (!twoPhase && maxCoeff == ZERO_TOLERANCE) )
         {
-            sol->setErrorCode(SOLVED);
+            sol->setErrorCode(LPSolution::SOLVED);
 
             std::cout << "solved" << std::endl;
             displayMatrix(table);
@@ -589,7 +569,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
 
             if (maxVar == ZERO_TOLERANCE)
             {
-                sol->setErrorCode(UNBOUNDED);
+                sol->setErrorCode(LPSolution::UNBOUNDED);
                 stay = false; // break out of the loop to return
             }
             else
@@ -623,7 +603,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
 
     if (maxIter - numIter < 2)
     {
-        sol->setErrorCode(EXCEEDED_MAX_ITERATIONS);
+        sol->setErrorCode(LPSolution::EXCEEDED_MAX_ITERATIONS);
     }
 
     return;

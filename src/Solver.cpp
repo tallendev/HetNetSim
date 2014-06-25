@@ -32,35 +32,37 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
     // TODO: check for cycling?
     // TODO: implement a struct
 
+    simplex_t info;    
     LPSolution sol;
-    numLeqConstraints = (unsigned long) lp->getLeqConstraints()->getSize();
-    numEqConstraints = (unsigned long) lp->getEqConstraints()->getSize();
-    numConstraints = numLeqConstraints + numEqConstraints;
+    info.numLeqConstraints = (unsigned long) lp->getLeqConstraints()->getSize();
+    info.numEqConstraints = (unsigned long) lp->getEqConstraints()->getSize();
+    info.numConstraints = info.numLeqConstraints + info.numEqConstraints;
     std::istringstream countVars(lp->getEquation());
     std::string token;
-    numDecisionVars = 0;
+    info.numDecisionVars = 0;
 
     while (std::getline(countVars, token, ' '))
     {
-        numDecisionVars++;
+        info.numDecisionVars++;
     }
 
-    double** table = arrayInit2d(numConstraints + 1, numDecisionVars + numConstraints + 1);
-    lpToTable (lp, table);
+    double** table = arrayInit2d(info.numConstraints + 1, 
+                                info.numDecisionVars + info.numConstraints + 1);
+    lpToTable (lp, table, &info);
 
     std::cout << "original matrix" << std::endl;
-    displayMatrix(table);
+    displayMatrix(table, &info);
 
     bool twoPhase;
     // If there are only inequality constraints ond no b values < 0, we
     // can use the origin as a BFS instead of using the Two Phase method.
     int negBValues = 0; // number of inequalities with b < 0
 
-    if (numEqConstraints == 0)
+    if (info.numEqConstraints == 0)
     {
-        for (unsigned long long i = 0; i < numLeqConstraints; i++)
+        for (unsigned long long i = 0; i < info.numLeqConstraints; i++)
         {
-            if ((table)[i][numDecisionVars + numConstraints] < 0)
+            if ((table)[i][info.numDecisionVars + info.numConstraints] < 0)
             {
                 negBValues++;
             }
@@ -70,7 +72,7 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
         {
             // the problem is trivially feasible
             twoPhase = false;
-            solve(table, &sol, twoPhase);
+            solve(table, &sol, twoPhase, &info);
         }
         else
         {
@@ -84,11 +86,11 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
 
     if (twoPhase)
     {
-        if (checkFeasibility(table))
+        if (checkFeasibility(table, &info))
         {
             std::cout << "new matrix" << std::endl;
-            displayMatrix(table);
-            solve(table, &sol, twoPhase);
+            displayMatrix(table, &info);
+            solve(table, &sol, twoPhase, &info);
         }
         else
         {
@@ -96,12 +98,12 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
         }
     }
 
-    arrayDel2d(table, numConstraints + 1);
+    arrayDel2d(table, info.numConstraints + 1);
 
     return sol;
 }
 
-void Solver::displayMatrix(double** matrix)
+void Solver::displayMatrix(double** matrix, simplex_t* info)
 {
     /*char outputLine[numConstraints + 1][95];
 
@@ -115,9 +117,10 @@ void Solver::displayMatrix(double** matrix)
         memset(outputLine[i], ' ', 90);
     }*/
     std::cout << "\n\n";
-    for (unsigned long long i = 0; i < numConstraints + 1; i++)
+    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
     {
-        for (unsigned long long j = 0; j < numConstraints + numDecisionVars + 1;j++)
+        for (unsigned long long j = 0; 
+             j < info->numConstraints + info->numDecisionVars + 1 ;j++)
         {
             std::cout << " " << matrix[i][j] << " ";
         }
@@ -185,39 +188,36 @@ unsigned long long choose(unsigned long long n, unsigned long long k)
     return r;
 }
 
-bool Solver::checkFeasibility(double** table)
+bool Solver::checkFeasibility(double** table, simplex_t* info)
 {
-    //unsigned long long numOriginalColumns = table->size();
-    //unsigned long long numOriginalRows = ((table)[0]).length();
-
     // formulate a related solvable problem based on the table and solve it.
-    unsigned long long numRows = numConstraints + numEqConstraints + 2;
-    unsigned long long numColumns = numDecisionVars + (2 * numConstraints) +
-                                      (2 * numEqConstraints) + 1;
+    unsigned long long numRows = info->numConstraints + info->numEqConstraints + 2;
+    unsigned long long numColumns = info->numDecisionVars + (2 * info->numConstraints) +
+                                      (2 * info->numEqConstraints) + 1;
     double** relatedTable = arrayInit2d(numRows, numColumns);
 
-    for (unsigned long long i = 0; i < numConstraints; i++)
+    for (unsigned long long i = 0; i < info->numConstraints; i++)
     {
-        for (unsigned long long j = 0; j < numDecisionVars + numConstraints; j++)
+        for (unsigned long long j = 0; j < info->numDecisionVars + info->numConstraints; j++)
         {
             relatedTable[i][j] = table[i][j];
         }
 
-        relatedTable[i][numColumns - 1] = table[i][numDecisionVars + numConstraints];
+        relatedTable[i][numColumns - 1] = table[i][info->numDecisionVars + info->numConstraints];
     }
 
-    for (unsigned long long i = 0; i < numConstraints + numDecisionVars; i++)
+    for (unsigned long long i = 0; i < info->numConstraints + info->numDecisionVars; i++)
     {
-        (relatedTable)[numConstraints + numEqConstraints][i] =
-            (table)[numConstraints][i];
+        (relatedTable)[info->numConstraints + info->numEqConstraints][i] =
+            (table)[info->numConstraints][i];
     }
 
-    unsigned long long colCounter = numDecisionVars + numConstraints +
-                                      numEqConstraints;
+    unsigned long long colCounter = info->numDecisionVars + info->numConstraints +
+                                    info->numEqConstraints;
 
-    for (unsigned long long i = 0; i < numLeqConstraints; i++)
+    for (unsigned long long i = 0; i < info->numLeqConstraints; i++)
     {
-        if (table[i][numDecisionVars + numConstraints] < 0)
+        if (table[i][info->numDecisionVars + info->numConstraints] < 0)
         {
             relatedTable[i][colCounter++] = -1;
         }
@@ -229,9 +229,9 @@ bool Solver::checkFeasibility(double** table)
 
     unsigned long long rowCounter = 0;
 
-    for (unsigned long long i = numLeqConstraints; i < numConstraints; i++)
+    for (unsigned long long i = info->numLeqConstraints; i < info->numConstraints; i++)
     {
-        if (table[i][numDecisionVars + numConstraints] < 0)
+        if (table[i][info->numDecisionVars + info->numConstraints] < 0)
         {
             relatedTable[i][colCounter++] = -1;
         }
@@ -242,25 +242,25 @@ bool Solver::checkFeasibility(double** table)
 
         for (unsigned long long j = 0; j < numColumns; j++)
         {
-            relatedTable[numConstraints + rowCounter][j] = (relatedTable)[i][j];
+            relatedTable[info->numConstraints + rowCounter][j] = (relatedTable)[i][j];
         }
 
-        relatedTable[numConstraints + rowCounter]
-        [numDecisionVars + numLeqConstraints + rowCounter] = 0;
-        relatedTable[numConstraints + rowCounter]
-        [numDecisionVars + numConstraints + rowCounter] = -1;
-        relatedTable[numConstraints + rowCounter][colCounter + rowCounter] =
-            relatedTable[numConstraints + rowCounter][colCounter + rowCounter - 1];
-        relatedTable[numConstraints + rowCounter][colCounter + rowCounter - 1] = 0;
+        relatedTable[info->numConstraints + rowCounter]
+        [info->numDecisionVars + info->numLeqConstraints + rowCounter] = 0;
+        relatedTable[info->numConstraints + rowCounter]
+        [info->numDecisionVars + info->numConstraints + rowCounter] = -1;
+        relatedTable[info->numConstraints + rowCounter][colCounter + rowCounter] =
+            relatedTable[info->numConstraints + rowCounter][colCounter + rowCounter - 1];
+        relatedTable[info->numConstraints + rowCounter][colCounter + rowCounter - 1] = 0;
         rowCounter++;
         colCounter++;
     }
 
-    for (unsigned long long i = numDecisionVars + numConstraints +
-                                  numEqConstraints;
+    for (unsigned long long i = info->numDecisionVars + info->numConstraints +
+                                  info->numEqConstraints;
          i < numColumns - 1; i++)
     {
-        (relatedTable)[numConstraints + numEqConstraints + 1][i] = 1;
+        (relatedTable)[info->numConstraints + info->numEqConstraints + 1][i] = 1;
     }
 
     for (unsigned long long i = 0; i < numRows - 1; i++)
@@ -288,7 +288,7 @@ bool Solver::checkFeasibility(double** table)
     }
 
     std::cout << "related matrix" << std::endl;
-    displayMatrix(relatedTable);
+    displayMatrix(relatedTable, info);
 
     // Attempt to solve the related problem to find a BFS for the original.
     LPSolution relatedSol;
@@ -315,7 +315,7 @@ bool Solver::checkFeasibility(double** table)
         {
             relatedSol.setErrorCode(LPSolution::SOLVED);
             std::cout << "related problem solved" << std::endl;
-            displayMatrix(relatedTable);
+            displayMatrix(relatedTable, info);
             relatedSol.setZValue(-1 * (relatedTable)[numRows - 1][numColumns - 1]);
             stay = false;
         }
@@ -357,8 +357,8 @@ bool Solver::checkFeasibility(double** table)
 
                 numIter++;
                 std::cout << "Phase I iter " << numIter << std::endl;
-                pivot(relatedTable, pivotRow, pivotCol);
-                displayMatrix(relatedTable);
+                pivot(relatedTable, pivotRow, pivotCol, info);
+                displayMatrix(relatedTable, info);
             }
         }
     } // end while
@@ -373,25 +373,25 @@ bool Solver::checkFeasibility(double** table)
     {
         //TODO: check for artifical variables in the basis
         // Transfer the BFS we found to the original table for solving later.
-        for (unsigned long long i = 0; i < numConstraints; i++)
+        for (unsigned long long i = 0; i < info->numConstraints; i++)
         {
-            for (unsigned long long j = 0; j < numConstraints + numDecisionVars; j++)
+            for (unsigned long long j = 0; j < info->numConstraints + info->numDecisionVars; j++)
             {
                 table[i][j] = relatedTable[i][j];
             }
 
-            (table)[i][numConstraints + numDecisionVars] =
+            (table)[i][info->numConstraints + info->numDecisionVars] =
                 relatedTable[i][numColumns - 1];
         }
 
-        for (unsigned long long i = 0; i < numConstraints + numDecisionVars; i++)
+        for (unsigned long long i = 0; i < info->numConstraints + info->numDecisionVars; i++)
         {
-            table[numConstraints][i] =
-                relatedTable[numConstraints + numEqConstraints][i];
+            table[info->numConstraints][i] =
+                relatedTable[info->numConstraints + info->numEqConstraints][i];
         }
 
-        table[numConstraints][numConstraints + numDecisionVars] =
-            relatedTable[numConstraints + numEqConstraints][numColumns - 1];
+        table[info->numConstraints][info->numConstraints + info->numDecisionVars] =
+            relatedTable[info->numConstraints + info->numEqConstraints][numColumns - 1];
 
         return true; // the original problem is solvable
     }
@@ -401,14 +401,14 @@ bool Solver::checkFeasibility(double** table)
     }
 }
 
-void Solver::lpToTable(LinearProgram* lp, double** table)
+void Solver::lpToTable(LinearProgram* lp, double** table, simplex_t* info)
 {
     // populate the table with data from the inequality constraints
     LinkedList<std::string>* listOfLeqConstraints = lp->getLeqConstraints();
     LinkedList<std::string>::ListIterator leqConstraintsIter =
         listOfLeqConstraints->iterator();
 
-    for (unsigned long long i = 0; i < numLeqConstraints; i++)
+    for (unsigned long long i = 0; i < info->numLeqConstraints; i++)
     {
         unsigned long long j = 0;
         std::istringstream split(leqConstraintsIter.next());
@@ -420,9 +420,9 @@ void Solver::lpToTable(LinearProgram* lp, double** table)
         }
 
         j--;
-        table[i][numDecisionVars + numConstraints] = (table)[i][j];
+        table[i][info->numDecisionVars + info->numConstraints] = (table)[i][j];
         table[i][j] = 0;
-        table[i][numDecisionVars + i] = 1;
+        table[i][info->numDecisionVars + i] = 1;
     }
 
     // populate the table with data from the equality constraints
@@ -430,7 +430,7 @@ void Solver::lpToTable(LinearProgram* lp, double** table)
     LinkedList<std::string>::ListIterator eqConstraintsIter =
         listOfEqConstraints->iterator();
 
-    for (unsigned long long i = numLeqConstraints; i < numConstraints; i++)
+    for (unsigned long long i = info->numLeqConstraints; i < info->numConstraints; i++)
     {
         unsigned long long j = 0;
         std::istringstream split(eqConstraintsIter.next());
@@ -442,9 +442,9 @@ void Solver::lpToTable(LinearProgram* lp, double** table)
         }
 
         j--;
-        (table)[i][numDecisionVars + numConstraints] = (table)[i][j];
+        (table)[i][info->numDecisionVars + info->numConstraints] = (table)[i][j];
         (table)[i][j] = 0;
-        (table)[i][numDecisionVars + i] = 1;
+        (table)[i][info->numDecisionVars + i] = 1;
     }
 
     std::istringstream split(lp->getEquation());
@@ -452,23 +452,23 @@ void Solver::lpToTable(LinearProgram* lp, double** table)
 
     for (unsigned long long i = 0; std::getline(split, token, ' '); i++)
     {
-        std::istringstream(token) >> (table)[numConstraints][i];
+        std::istringstream(token) >> (table)[info->numConstraints][i];
     }
 
     return;
 }
 
-void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
+void Solver::solve(double** table, LPSolution* sol, bool twoPhase, simplex_t* info)
 {
-    unsigned long long numRows = numConstraints + 1;
+    unsigned long long numRows = info->numConstraints + 1;
     // generally numConstraints + 1
-    unsigned long long numCols = numDecisionVars + numConstraints + 1;
+    unsigned long long numCols = info->numDecisionVars + info->numConstraints + 1;
     // generally numDecisionVars + numLeqConstraints + 1
-    double* optimalValues = new double[(unsigned long) numDecisionVars];
+    double* optimalValues = new double[(unsigned long) info->numDecisionVars];
 
-    unsigned long long maxIter = choose((unsigned long long) numConstraints +
-                                        (unsigned long long) numDecisionVars,
-                                        (unsigned long long) numConstraints);
+    unsigned long long maxIter = choose((unsigned long long) info->numConstraints +
+                                        (unsigned long long) info->numDecisionVars,
+                                        (unsigned long long) info->numConstraints);
     unsigned long long numIter = 0; // number of iterations completed.
     bool stay = true;
 
@@ -509,10 +509,10 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
             sol->setErrorCode(LPSolution::SOLVED);
 
             std::cout << "solved" << std::endl;
-            displayMatrix(table);
+            displayMatrix(table, info);
 
             // evaluate the final matrix for the values of each decision variable
-            for (unsigned long long col = 0; col < numDecisionVars; col++)
+            for (unsigned long long col = 0; col < info->numDecisionVars; col++)
             {
                 bool foundOne = false; // found a 1 in this column
                 bool foundNonZero = false; // found a nonzero number (except 1st 1)
@@ -559,7 +559,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
             // Check if all entries in pivotCol are <= 0
             double maxVar = ZERO_TOLERANCE;
 
-            for (unsigned long long row = 0; row < numConstraints; row++)
+            for (unsigned long long row = 0; row < info->numConstraints; row++)
             {
                 if (table[row][pivotCol] > maxVar)
                 {
@@ -578,7 +578,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
                 unsigned long long pivotRow;
                 double minRatio = DBL_MAX;
 
-                for (unsigned long long row = 0; row < numConstraints; row++)
+                for (unsigned long long row = 0; row < info->numConstraints; row++)
                 {
                     if ((table)[row][pivotCol] > ZERO_TOLERANCE)
                     {
@@ -593,10 +593,10 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
                 }
 
                 // pivot the table to (hopefully) increase z.
-                pivot(table, pivotRow, pivotCol);
+                pivot(table, pivotRow, pivotCol, info);
                 numIter++;
                 std::cout << "iter " << numIter << std::endl;
-                displayMatrix(table);
+                displayMatrix(table, info);
             }
         }
     } // end while loop
@@ -610,11 +610,11 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
 }
 
 void Solver::pivot(double** table, unsigned long long pivotRow,
-                   unsigned long long pivotCol)
+                   unsigned long long pivotCol, simplex_t* info)
 {
     std::cout << "pivoting on row " << pivotRow << " col " << pivotCol << std::endl;
-    unsigned long long numRows = numConstraints + 1;
-    unsigned long long numCols = numDecisionVars + numConstraints + 1;
+    unsigned long long numRows = info->numConstraints + 1;
+    unsigned long long numCols = info->numDecisionVars + info->numConstraints + 1;
     double pivotNumber = (table)[pivotRow][pivotCol];
 
     for (unsigned long long col = 0; col < numCols; col++)

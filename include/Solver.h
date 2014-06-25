@@ -18,17 +18,24 @@
 #include <vector>
 
 class Solver {
+    struct simplex_t;
+    typedef struct simplex_t simplex_t;
+
     private:
-        unsigned long numDecisionVars;
-        unsigned long numConstraints;
-        unsigned long numLeqConstraints;
-        unsigned long numEqConstraints;
-        void solve(double** table, LPSolution* sol, bool twoPhase);
-        void lpToTable (LinearProgram* lp, double** table);
+        void solve(double** table, LPSolution* sol, bool twoPhase, simplex_t* info);
+        void lpToTable (LinearProgram* lp, double** table, simplex_t* info);
         void pivot (double** table, unsigned long long pivotRow,
-                    unsigned long long pivotCol);
-        bool checkFeasibility (double** table);
-        void displayMatrix(double** matrix);
+                    unsigned long long pivotCol, simplex_t* info);
+        bool checkFeasibility (double** table, simplex_t* info);
+        void displayMatrix(double** matrix, simplex_t* info);
+
+        struct simplex_t
+        {
+            unsigned long numDecisionVars;
+            unsigned long numConstraints;
+            unsigned long numLeqConstraints;
+            unsigned long numEqConstraints;
+        };
 
         // Don't implement these, they prevent copies from being made.
         Solver() {};

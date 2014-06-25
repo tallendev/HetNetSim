@@ -19,25 +19,25 @@ LinearProgram::LinearProgram(std::string equation) : equation (equation)
 }
 
 /**
- * GetEquation method. Returns the equation as a string.
+ * getEquation method. Returns the equation as a string.
  */
-std::string LinearProgram::GetEquation()
+std::string LinearProgram::getEquation()
 {
     return equation;
 }
 
 /**
- * GetLeqConstraints method. returns the linked list of <= constraint equations.
+ * getLeqConstraints method. returns the linked list of <= constraint equations.
  */
-LinkedList<std::string>* LinearProgram:: GetLeqConstraints()
+LinkedList<std::string>* LinearProgram:: getLeqConstraints()
 {
     return &leqConstraints;
 }
 
 /**
- * GetEqConstraints method. returns the linked list of = constraint equations.
+ * getEqConstraints method. returns the linked list of = constraint equations.
  */
-LinkedList<std::string>* LinearProgram:: GetEqConstraints()
+LinkedList<std::string>* LinearProgram:: getEqConstraints()
 {
     return &eqConstraints;
 }

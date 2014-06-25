@@ -12,23 +12,22 @@
 #include <vector>
 
 /**
- * This class will represent a linear program solution. 
+ * This class will represent a linear program solution.
  */
-class LPSolution
-{
+class LPSolution {
     private:
         int errorCode;
-        std::vector<double> optimalValues; // the optimal values for the decision variables
+        double* optimalValues; // the optimal values for the decision variables
         double zValue; // optimal value of the objective equation
     public:
         LPSolution();
         ~LPSolution();
-        int GetErrorCode();
-        void SetErrorCode(int code);
-        void SetOptimalValues(std::vector<double> optimalValues);
-        std::vector<double> GetOptimalValues();
-        void SetZValue(double zValue);
-        double GetZValue();
+        int getErrorCode();
+        void setErrorCode(int code);
+        void setOptimalValues(double* optimalValues);
+        double* getOptimalValues();
+        void setZValue(double zValue);
+        double getZValue();
 
 };
 

@@ -27,7 +27,7 @@ template <typename T> LinkedList<T>::LinkedList()
  *
  * Return: The data stored in the node.
  */
-template<typename T> T LinkedList<T>::Node::GetData()
+template<typename T> T LinkedList<T>::Node::getData()
 {
     return data;
 }
@@ -37,7 +37,7 @@ template<typename T> T LinkedList<T>::Node::GetData()
  *
  * Param: newData - the data to store in the node.
  */
-template <typename T> void LinkedList<T>::Node::SetData(T newData)
+template <typename T> void LinkedList<T>::Node::setData(T newData)
 {
     data = newData;
 }
@@ -47,7 +47,7 @@ template <typename T> void LinkedList<T>::Node::SetData(T newData)
  *
  * Return: The next node in the list.
  */
-template <typename T> typename LinkedList<T>::Node* LinkedList<T>::Node::GetNext ()
+template <typename T> typename LinkedList<T>::Node* LinkedList<T>::Node::getNext ()
 {
     return next;
 }
@@ -56,7 +56,7 @@ template <typename T> typename LinkedList<T>::Node* LinkedList<T>::Node::GetNext
  * Changes the node that this node links to. 
  * Param: newNext - Node to replace next with.
  */
-template <typename T> void LinkedList<T>::Node::SetNext (Node* newNext)
+template <typename T> void LinkedList<T>::Node::setNext (Node* newNext)
 {
     next = newNext;
 }
@@ -67,11 +67,11 @@ template <typename T> void LinkedList<T>::Node::SetNext (Node* newNext)
  *
  * Param: node - The node to free.
  */
-template <typename T> void LinkedList<T>::FreeNode(Node* node)
+template <typename T> void LinkedList<T>::freeNode(Node* node)
 {
-    if (node->GetNext())
+    if (node->getNext())
     {
-        FreeNode(node->GetNext());
+        freeNode(node->getNext());
     }
     delete node;
 }
@@ -82,7 +82,7 @@ template <typename T> void LinkedList<T>::FreeNode(Node* node)
 template <typename T> LinkedList<T>::~LinkedList()
 {
     if (head)
-        FreeNode(head);
+        freeNode(head);
 }
 
 /**
@@ -117,7 +117,7 @@ template <typename T> LinkedList<T>::Node::~Node()
  * Add an item to the linked list.
  * Param: item - The data to be stored in the node.
  */
-template <typename T> void LinkedList<T>::Add(T item)
+template <typename T> void LinkedList<T>::add(T item)
 {
     if (head == NULL)
     {
@@ -126,16 +126,8 @@ template <typename T> void LinkedList<T>::Add(T item)
     }
     else
     {
-        if (tail == head)
-        {
-            tail = new Node(item);
-            head->SetNext(tail);
-        }
-        else
-        {
-            tail->SetNext(new Node(item));
-            tail = tail->GetNext();
-        }
+        tail->setNext(new Node(item));
+        tail = tail->getNext();
     }
     size++;
 }
@@ -146,27 +138,20 @@ template <typename T> void LinkedList<T>::Add(T item)
  *
  * Param: index - the 1-based index from which to retreive an element.
  */
-template <typename T> T LinkedList<T>::Get(int index)
+template <typename T> T LinkedList<T>::get(int index)
 {
-    if (index == size - 1)
+    Node* probe = head;
+    for (int i = 1; i < index; i++)
     {
-        return tail->GetData();
+        probe = probe->getNext();
     }
-    else
-    {
-        Node* probe = head;
-        for (int i = 1; i < index; i++)
-        {
-            probe = probe->GetNext();
-        }
-        return probe->GetData();
-    }
+    return probe->getData();
 }
 
 /**
  * Returns the size of the LinkedList.
  */
-template <typename T> int LinkedList<T>::GetSize()
+template <typename T> int LinkedList<T>::getSize()
 {
     return size;
 }
@@ -189,17 +174,17 @@ template <typename T> LinkedList<T>::ListIterator::~ListIterator()
  *
  * Return: The next element in the list.
  */
-template <typename T> T LinkedList<T>::ListIterator::Next()
+template <typename T> T LinkedList<T>::ListIterator::next()
 {
-    T currentData = current->GetData();
-    current = current->GetNext();
+    T currentData = current->getData();
+    current = current->getNext();
     return currentData;
 }
 
 /**
  * Returns an iterator over this list.
  */
-template <typename T> typename LinkedList<T>::ListIterator LinkedList<T>::Iterator()
+template <typename T> typename LinkedList<T>::ListIterator LinkedList<T>::iterator()
 {
     return ListIterator(this);
 }
@@ -209,7 +194,7 @@ template <typename T> typename LinkedList<T>::ListIterator LinkedList<T>::Iterat
  *
  * Return: True if next() is a valid call. False if not.
  */
-template <typename T> bool LinkedList<T>::ListIterator::HasNext()
+template <typename T> bool LinkedList<T>::ListIterator::hasNext()
 {
     return (bool) current;
 }

@@ -15,6 +15,7 @@
  */
 LPSolution::LPSolution() : errorCode(100)
 {
+    std::vector<double> optimalValues;
 }
 
 /**
@@ -23,15 +24,14 @@ LPSolution::LPSolution() : errorCode(100)
  */
 LPSolution::~LPSolution()
 {
-    delete [] optimalValues;
 }
 
 /**
  * GetErrorCode method.
- * This should be called whenever you recieve a solution to check
+ * This should be called whenever you recieve a solution to check 
  * for errors (unbounded, infeasible, etc)
  */
-int LPSolution::getErrorCode()
+int LPSolution::GetErrorCode()
 {
     return errorCode;
 }
@@ -41,7 +41,7 @@ int LPSolution::getErrorCode()
  * This is used in the Solver to indicate to the caller if the solution is valid.
  * A value of 0 means success.
  */
-void LPSolution::setErrorCode(int code)
+void LPSolution::SetErrorCode(int code)
 {
     errorCode = code;
 }
@@ -51,17 +51,17 @@ void LPSolution::setErrorCode(int code)
  * This is used by the Solver to save an array of floats
  * that are the optimal values for the decision variables.
  */
-void LPSolution::setOptimalValues(double* inOptimalValues)
+void LPSolution::SetOptimalValues( std::vector<double> inOptimalValues)
 {
     optimalValues = inOptimalValues;
 }
 
 /**
  * GetOptimalValues method.
- * You should call this if the error code is 0 and you want the
+ * You should call this if the error code is 0 and you want the 
  * optimal values for the decision variables.
  */
-double* LPSolution::getOptimalValues()
+std::vector<double> LPSolution::GetOptimalValues()
 {
     return optimalValues;
 }
@@ -70,16 +70,16 @@ double* LPSolution::getOptimalValues()
  * SetZValue method.
  * This sets the optimal value of the objective equation.
  */
-void LPSolution::setZValue(double inZValue)
+void LPSolution::SetZValue(double inZValue)
 {
     zValue = inZValue;
 }
 
 /**
- * getZValue method.
+ * GetZValue method.
  * This returns the optimal value of the objective equation.
  */
-double LPSolution::getZValue()
+double LPSolution::GetZValue()
 {
     return zValue;
 }

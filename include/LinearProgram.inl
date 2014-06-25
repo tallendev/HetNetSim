@@ -14,9 +14,9 @@
  *
  * Param: leqConstraint - The <= constraint to be added.
  */
-inline void LinearProgram::AddLeqConstraint(std::string leqConstraint)
+inline void LinearProgram::addLeqConstraint(std::string leqConstraint)
 {
-    leqConstraints.Add(leqConstraint);
+    leqConstraints.add(leqConstraint);
 }
 
 /**
@@ -24,9 +24,9 @@ inline void LinearProgram::AddLeqConstraint(std::string leqConstraint)
  *
  * Param: eqConstraint - The = constraint to be added.
  */
-inline void LinearProgram::AddEqConstraint(std::string eqConstraint)
+inline void LinearProgram::addEqConstraint(std::string eqConstraint)
 {
-    eqConstraints.Add(eqConstraint);
+    eqConstraints.add(eqConstraint);
 }
 
 /**

@@ -1,7 +1,7 @@
 /**
- * This class represents a Linear Program in our model. It contains our
- * optimization problem, variable limitations, as well as the list of
- * constraints.
+ * This class represents a Linear Program in our model. It contains our 
+ * optimization problem, variable limitations, as well as the list of 
+ * constraints. 
  */
 
 #ifndef LINEARPROGRAM_H
@@ -10,9 +10,10 @@
 #include <string>
 #include "LinkedList.h"
 
-class LinearProgram {
+class LinearProgram
+{
     private:
-        std::string equation;
+        std::string equation; 
         // example: 2 3 -4
         // meaning: 2x1 + 3x2 - 4x3 = z
         LinkedList<std::string> leqConstraints; // <= constraints
@@ -21,17 +22,17 @@ class LinearProgram {
     public:
         LinearProgram(std::string equation);
         ~LinearProgram();
-        void addLeqConstraint(std::string leqConstraint);
+        void AddLeqConstraint(std::string leqConstraint);
         // example: 3 0 -7 42
         // meaning: 3x1 -7x3 <= 42
-        void addEqConstraint(std::string eqConstraint);
+        void AddEqConstraint(std::string eqConstraint);
         // example 5 4 3 9
         // meaning: 5x1 + 4x2 + 3x3 = 9
-        std::string getEquation();
-        LinkedList<std::string>* getLeqConstraints();
-        LinkedList<std::string>* getEqConstraints();
+        std::string GetEquation();
+        LinkedList<std::string>* GetLeqConstraints();
+        LinkedList<std::string>* GetEqConstraints();
         // int ValidateFormat();
-
+        
 };
 
 #include "LinearProgram.inl"

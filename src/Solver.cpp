@@ -15,6 +15,10 @@
 #include <iostream>
 #include <limits>
 #include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <string.h>
+#include <cstdio>
 
 
 unsigned long long choose(unsigned long long n, unsigned long long k);
@@ -105,9 +109,9 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
 
 void Solver::displayMatrix(double** matrix, simplex_t* info)
 {
-    /*char outputLine[numConstraints + 1][95];
+    char outputLine[info->numConstraints + 1][95];
 
-    for (unsigned long long i = 0; i < numConstraints + 1; i++)
+    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
     {
         strncpy(outputLine[i],
                 "  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  **** \n",
@@ -115,8 +119,8 @@ void Solver::displayMatrix(double** matrix, simplex_t* info)
                 //012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
                 93);
         memset(outputLine[i], ' ', 90);
-    }*/
-    std::cout << "\n\n";
+    }
+    /**std::cout << "\n\n";
     for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
     {
         for (unsigned long long j = 0; 
@@ -126,13 +130,13 @@ void Solver::displayMatrix(double** matrix, simplex_t* info)
         }
         std::cout << "\n";
     }
-    std::cout << "\n";
+    std::cout << "\n";*/
 
-    /**char temp[5];
+    char temp[5];
 
-    for (unsigned long long i = 0; i < numConstraints + 1; i++)
+    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
     {
-        for (unsigned long long j = 0; j < 95; j++)
+        for (unsigned long long j = 0; j < info->numConstraints + 1 + info->numDecisionVars; j++)
         {
             memset(&temp, ' ', 4);
             sprintf(temp, "%.2f", matrix[i][j]);
@@ -140,10 +144,10 @@ void Solver::displayMatrix(double** matrix, simplex_t* info)
         }
     }
 
-    for (unsigned long long i = 0; i < numConstraints + 1; i++)
+    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
     {
         std::cout << outputLine[i];
-    }**/
+    }
 
     return;
 }

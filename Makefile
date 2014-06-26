@@ -1,4 +1,4 @@
-CC=g++
+CC=g++-4.8
 # CC=clang
 CFLAGS= -Wall -Wextra -Wconversion -g -std=gnu++11
 CPPEXT=cpp
@@ -13,22 +13,22 @@ HEADERDIR=include
 INCLUDE=-I./$(HEADERDIR)
 
 SOURCES = $(shell find $(SRCDIR) -type f -name *.$(CPPEXT))
-FEASIBLESOURCES := $(shell find $(SRCDIR)/ -type f ! -name "main.cpp" -name *.$(CPPEXT))
+FEASIBLESOURCES := $(shell find $(SRCDIR)/ -type f ! -name "interface.cpp" -name *.$(CPPEXT))
 FEASIBLESOURCES += $(shell find $(TESTDIR)/ -type f -name feasible.$(CPPEXT))
-INFEASIBLESOURCES := $(shell find $(SRCDIR)/ -type f ! -name "main.cpp" -name *.$(CPPEXT))
+INFEASIBLESOURCES := $(shell find $(SRCDIR)/ -type f ! -name "interface.cpp" -name *.$(CPPEXT))
 INFEASIBLESOURCES += $(shell find $(TESTDIR)/ -type f -name infeasible.$(CPPEXT))
 HEADERS = $(shell find $(HEADERDIR) -type f -name *.$(HEXT)) 
 OBJECTS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(CPPEXT)=.$(OBJEXT)))
-FEASIBLEOBJECTS = $(filter-out $(SRCDIR)/main.$(OBJEXT), $(OBJECTS))
+FEASIBLEOBJECTS = $(filter-out $(SRCDIR)/interface.$(OBJEXT), $(OBJECTS))
 FEASIBLEOBJECTS := $(feasible.o, $(FEASIBLEOBJECTS))
-INFEASIBLEOBJECTS = $(filter-out $(SRCDIR)/main.$(OBJEXT), $(OBJECTS))
+INFEASIBLEOBJECTS = $(filter-out $(SRCDIR)/interface.$(OBJEXT), $(OBJECTS))
 INFEASIBLEOBJECTS := $(infeasible.o, $(INFEASIBLEOBJECTS))
 
 all: interface_wrap.cpp $(OBJECTS) $(HEADERS)
 	@echo "Sources: $(shell find $(SRCDIR) -type f -name *.$(CPPEXT))"
 	$(CC) -fPIC -shared $(shell php-config --includes) $(INCLUDE) $(CFLAGS) $(SOURCES) -o $(TARGET)
 
-testfeasible: $(OBJECTS) $(HEADERS)
+testfeasible:
 	@echo "Sources: $(FEASIBLESOURCES)"
 	$(CC) $(INCLUDE) $(CFLAGS) $(FEASIBLESOURCES) -o $(TARGET)
 

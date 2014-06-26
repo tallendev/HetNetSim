@@ -62,7 +62,7 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
     {
         for (unsigned long long i = 0; i < info.numLeqConstraints; i++)
         {
-            if ((table)[i][info.numDecisionVars + info.numConstraints] < 0)
+            if (table[i][info.numDecisionVars + info.numConstraints] < 0)
             {
                 negBValues++;
             }
@@ -162,27 +162,29 @@ unsigned long long gcd(unsigned long long x, unsigned long long y)
 
 unsigned long long choose(unsigned long long n, unsigned long long k)
 {
+    static const unsigned long long MAX_LONG = std::numeric_limits<unsigned long long>::max();
     unsigned long long r = 1;
 
-    if (k > n)
-        // invalid parameters
+    // check for invalid parameters
+    if (k <= n)
     {
-        return r;
-    }
-
-    for (unsigned long long d = 1; d <= k; ++d, --n)
-    {
-        unsigned long long g = gcd(r, d);
-        r /= g;
-        unsigned long long t = n / (d / g);
-
-        if (r > std::numeric_limits<unsigned long long>::max() / t)
-            // overflow error
+        bool overflow = false;
+        for (unsigned long long d = 1; d <= k && !overflow; ++d, --n)
         {
-            return r;
-        }
+            unsigned long long g = gcd(r, d);
+            r /= g;
+            unsigned long long t = n / (d / g);
 
-        r *= t;
+            if (r > MAX_LONG / t)
+                // overflow error
+            {
+                overflow = true;
+            }
+            else
+            {
+                r *= t;
+            }
+        }
     }
 
     return r;
@@ -208,8 +210,8 @@ bool Solver::checkFeasibility(double** table, simplex_t* info)
 
     for (unsigned long long i = 0; i < info->numConstraints + info->numDecisionVars; i++)
     {
-        (relatedTable)[info->numConstraints + info->numEqConstraints][i] =
-            (table)[info->numConstraints][i];
+        relatedTable[info->numConstraints + info->numEqConstraints][i] =
+            table[info->numConstraints][i];
     }
 
     unsigned long long colCounter = info->numDecisionVars + info->numConstraints +
@@ -266,6 +268,7 @@ bool Solver::checkFeasibility(double** table, simplex_t* info)
     for (unsigned long long i = 0; i < numRows - 1; i++)
     {
         if (relatedTable[i][numColumns - 1] < 0)
+        {
             for (unsigned long long j = 0; j < numColumns; j++)
             {
                 if (relatedTable[i][j] != 0)
@@ -273,6 +276,7 @@ bool Solver::checkFeasibility(double** table, simplex_t* info)
                     relatedTable[i][j] *= -1;
                 }
             }
+        }
     }
 
     for (unsigned long long i = 0; i < numColumns; i++)
@@ -420,7 +424,7 @@ void Solver::lpToTable(LinearProgram* lp, double** table, simplex_t* info)
         }
 
         j--;
-        table[i][info->numDecisionVars + info->numConstraints] = (table)[i][j];
+        table[i][info->numDecisionVars + info->numConstraints] = table[i][j];
         table[i][j] = 0;
         table[i][info->numDecisionVars + i] = 1;
     }
@@ -580,13 +584,13 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase, simplex_t* in
 
                 for (unsigned long long row = 0; row < info->numConstraints; row++)
                 {
-                    if ((table)[row][pivotCol] > ZERO_TOLERANCE)
+                    if (table[row][pivotCol] > ZERO_TOLERANCE)
                     {
-                        if (((table)[row][numCols - 1] /
-                             (table)[row][pivotCol]) < minRatio)
+                        if ((table[row][numCols - 1] /
+                             table[row][pivotCol]) < minRatio)
                         {
-                            minRatio = (table)[row][numCols - 1] /
-                                       (table)[row][pivotCol];
+                            minRatio = table[row][numCols - 1] /
+                                       table[row][pivotCol];
                             pivotRow = row;
                         }
                     }
@@ -605,8 +609,6 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase, simplex_t* in
     {
         sol->setErrorCode(LPSolution::EXCEEDED_MAX_ITERATIONS);
     }
-
-    return;
 }
 
 void Solver::pivot(double** table, unsigned long long pivotRow,

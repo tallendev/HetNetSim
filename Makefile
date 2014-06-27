@@ -30,10 +30,14 @@ all: interface_wrap.cpp $(OBJECTS) $(HEADERS)
 
 testfeasible:
 	@echo "Sources: $(FEASIBLESOURCES)"
+	@mkdir -p $(BUILDDIR)
+	@mkdir -p bin
 	$(CC) $(INCLUDE) $(CFLAGS) $(FEASIBLESOURCES) -o $(TARGET)
 
 testinfeasible:
 	@echo "Sources: $(INFEASIBLESOURCES)"
+	@mkdir -p $(BUILDDIR)
+	@mkdir -p bin
 	$(CC) $(INCLUDE) $(CFLAGS) $(INFEASIBLESOURCES) -o $(TARGET)
 
 clang: $(OBJECTS) $(HEADERS)

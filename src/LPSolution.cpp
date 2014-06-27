@@ -23,7 +23,6 @@ LPSolution::LPSolution() : errorCode(100)
  */
 LPSolution::~LPSolution()
 {
-    delete [] optimalValues;
 }
 
 /**

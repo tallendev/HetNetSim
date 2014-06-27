@@ -28,6 +28,8 @@ class Solver {
                     unsigned long long pivotCol, simplex_t* info);
         bool checkFeasibility (double** table, simplex_t* info);
         void displayMatrix(double** matrix, simplex_t* info);
+        unsigned long long choose(unsigned long long n, unsigned long long k);
+        unsigned long long gcd(unsigned long long x, unsigned long long y);
 
         struct simplex_t
         {

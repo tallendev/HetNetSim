@@ -21,8 +21,6 @@
 #include <cstdio>
 
 
-unsigned long long choose(unsigned long long n, unsigned long long k);
-
 /**
  * Implementation of classic simplex method to solving linear programs.
  * Currently assumes:
@@ -34,7 +32,6 @@ unsigned long long choose(unsigned long long n, unsigned long long k);
 LPSolution Solver::simplexSolve(LinearProgram* lp)
 {
     // TODO: check for cycling?
-    // TODO: implement a struct
 
     simplex_t info;    
     LPSolution sol;
@@ -55,7 +52,7 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
     lpToTable (lp, table, &info);
 
     std::cout << "original matrix" << std::endl;
-    displayMatrix(table, &info);
+    //displayMatrix(table, &info);
 
     bool twoPhase;
     // If there are only inequality constraints ond no b values < 0, we
@@ -109,9 +106,18 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
 
 void Solver::displayMatrix(double** matrix, simplex_t* info)
 {
-    char outputLine[info->numConstraints + 1][95];
+    for (unsigned long long i = 0; i < 6; i++)
+    {
+        for (unsigned long long j = 0; j < 11; j++)
+        {
+            printf("%7.2f", matrix[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    //.char outputLine[6][95];
 
-    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
+   /* for (unsigned long long i = 0; i < 6; i++)
     {
         strncpy(outputLine[i],
                 "  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  ****  **** \n",
@@ -119,24 +125,23 @@ void Solver::displayMatrix(double** matrix, simplex_t* info)
                 //012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
                 93);
         memset(outputLine[i], ' ', 90);
-    }
-    /**std::cout << "\n\n";
-    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
+    }*/
+    /*std::cout << "\n\n";
+    for (unsigned long long i = 0; i < 6; i++)
     {
-        for (unsigned long long j = 0; 
-             j < info->numConstraints + info->numDecisionVars + 1 ;j++)
+        for (unsigned long long j = 0; j < 11; j++)
         {
             std::cout << " " << matrix[i][j] << " ";
         }
         std::cout << "\n";
     }
-    std::cout << "\n";*/
+    std::cout << "\n";
+*/
+    /*char temp[5];
 
-    char temp[5];
-
-    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
+    for (unsigned long long i = 0; i < 6; i++)
     {
-        for (unsigned long long j = 0; j < info->numConstraints + 1 + info->numDecisionVars; j++)
+        for (unsigned long long j = 0; j < 11; j++)
         {
             memset(&temp, ' ', 4);
             sprintf(temp, "%.2f", matrix[i][j]);
@@ -144,10 +149,10 @@ void Solver::displayMatrix(double** matrix, simplex_t* info)
         }
     }
 
-    for (unsigned long long i = 0; i < info->numConstraints + 1; i++)
+    for (unsigned long long i = 0; i < 6; i++)
     {
         std::cout << outputLine[i];
-    }
+    }*/
 
     return;
 }

@@ -32,7 +32,7 @@ testfeasible:
 	@echo "Sources: $(FEASIBLESOURCES)"
 	$(CC) $(INCLUDE) $(CFLAGS) $(FEASIBLESOURCES) -o $(TARGET)
 
-testinfeasible: $(OBJECTS) $(HEADERS)
+testinfeasible:
 	@echo "Sources: $(INFEASIBLESOURCES)"
 	$(CC) $(INCLUDE) $(CFLAGS) $(INFEASIBLESOURCES) -o $(TARGET)
 

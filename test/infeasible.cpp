@@ -6,14 +6,14 @@
 int main(void)
 {
     LinearProgram* pTestProblem = new LinearProgram("3 -7");
-    pTestProblem->AddLeqConstraint("5 10 10");
-    pTestProblem->AddEqConstraint("-3 -10 -10");
-    pTestProblem->AddLeqConstraint("-8 -7 6");
-    LPSolution answer = Solver::getInstance().SimplexSolve(pTestProblem);
-    std::cout << "answer error code = " << answer.GetErrorCode() << std::endl;
-    if (answer.GetErrorCode() == 0) {
-    std::cout << "z value: " << answer.GetZValue() << std::endl;
-    std::vector<double> answervals = answer.GetOptimalValues();
+    pTestProblem->addLeqConstraint("5 10 10");
+    pTestProblem->addEqConstraint("-3 -10 -10");
+    pTestProblem->addLeqConstraint("-8 -7 6");
+    LPSolution answer = Solver::getInstance().simplexSolve(pTestProblem);
+    std::cout << "answer error code = " << answer.getErrorCode() << std::endl;
+    if (answer.getErrorCode() == 0) {
+    std::cout << "z value: " << answer.getZValue() << std::endl;
+    double* answervals = answer.getOptimalValues();
     std::cout << "answer values: " << answervals[0] << std::endl; 
     std::cout << "answer values: " << answervals[1] << std::endl; 
     }

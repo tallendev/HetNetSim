@@ -25,7 +25,7 @@ While the Internet was originally designed for computers with stable connections
 or any other type of network for which the device contains an appropriate 
 radio receiver. The device itself connects to the network chosen by the user. 
 This is generally an easy choice for the user; if the 4G network has a 
-low signal strength, it is easy to switch to a local wireless network if one 
+low signal strength, it is easy to switch to a local wireless network when one 
 is available. This seems effective from the perspective of the device owner, 
 but having every wireless device owner select their own network of preference 
 may not be an optimal setup.
@@ -38,7 +38,7 @@ each individual device should use. This requires what we will call a Heterogenou
 Network (HetNet). HetNets are a composition of all the available wireless 
 networks in an area; in our model, a device could make a seamless transition
 between these networks at the behest of the GRC. The GRC's job is to ensure 
-that thee devices in a HetNet are allocated to networks in an optimal manner.
+that the devices in a HetNet are allocated to networks in an optimal manner.
 Optimality could depend on a number of variables; our goal could be to maximize
 bandwidth, cost efficiency, or a number of other variables. Our goal is 
 to design a tool that can simulate this kind of environment to allow students 
@@ -76,7 +76,7 @@ degenerate.
 elements and a JSON message passing system for communication to the server.
 The server will be running a PHP backend which will invoke optimized
 C++ code containing the Solver logic. The logic is an implementation of the two-phase
-simplex method. We have used the tool \textit{SWIG} to generate  % link to swig?
+simplex method. We have used the tool \textit{SWIG}\cite{swig} to generate  
 PHP to C++ bindings. 
 
 \subsection{Solver Design}
@@ -150,11 +150,16 @@ If a solution was found, all decision variables are assumed to have the value 0 
 \item Is it safe to delete all artificial variable columns at the end of Phase I, regardless of if they're in the basis at that point, or do they have to be pivoted out of the basis to maintain feasibility?
 \end{itemize}
 
-\section{Further Work}
+\section{Future Work}
 
 ~\indent In the near-term future, we are going to implement a web interface for the heterogeneous network simulator, which will allow the user to specify parameters and visualize the system's allocations. Longer-term, the project may be extended to a larger problem domain. For example, more allocation algorithms could be added.
 
-\begin{thebibliography}{1}
+\begin{thebibliography}{9}
+\bibitem{swig}
+  SWIG 3.0,
+  William Fulton, et al.  
+  GNU GPL v3.
+  http://swig.org/.
 \bibitem{chvatal83}
   Vašek Chvátal,
   Linear Programming.

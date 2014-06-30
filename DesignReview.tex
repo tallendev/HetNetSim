@@ -16,18 +16,20 @@
 
 {\setlength{\parindent}{0cm} \large \textbf{Abstract}}
 
-While the Internet was originally designed for computers with stable connections that 
-rarely changed location, the number of mobile devices online has grown rapidly in recent 
-years. Additionally, the landscape of wireless access technologies has become more 
-diverse, with WiFi, 3G/4G cellular networks, and WiMax often overlapping geographically. 
-In this environment, devices often have multiple Internet connection options, but not 
-enough information to know which connection would maximize throughput for them or for all 
-devices competing for bandwidth. In theory, a Global Resource Controller (GRC) which has 
-knowledge of all devices' bandwidth demands and connection options could allocate devices 
-to networks in an optimal way. We seek to create a simulation of just such an environment 
-in order to further understanding of these systems, and potentially for use as an 
-educational tool. This paper will give an overview of the theory behind our project, and 
-detail on the implementation that has been completed thusfar.
+While the Internet was originally designed for computers with stable connections 
+that rarely changed location, the number of mobile devices online has grown 
+rapidly in recent years. Additionally, the landscape of wireless access 
+technologies has become more diverse, with WiFi, 3G/4G cellular networks, and 
+WiMax often overlapping geographically. In this environment, devices often have 
+multiple Internet connection options, but not enough information to know which 
+connection would maximize throughput for them or for all devices competing for 
+bandwidth. In theory, a Global Resource Controller (GRC) which has knowledge 
+of all devices' bandwidth demands and connection options could allocate devices 
+to networks in an optimal way. We seek to create a simulation of just such an 
+environment in order to further understanding of these systems, and potentially 
+for use as an educational tool. This paper will give an overview of the theory 
+behind our project, and detail on the implementation that has been completed 
+thusfar.
 
 \section{Overview}
 \subsection{Modern Wireless Connectivity}
@@ -65,7 +67,7 @@ results in a visual fashion. In the next section, we will discuss the
 design and implementation of this tool.
 
 
-\section{Tool Design}
+\section{Software Design}
 
 \begin{center}
 \includegraphics[width=600px, angle=270]{model.png}
@@ -123,7 +125,7 @@ Simplex Method to solve any feasible, bounded optimization problem in standard f
 
 \subsection{Algorithm}
 \textbf{Phase I}\\
-~\indent If $E = \emptyset  \land  \forall i \in I, b_i \geq 0$, Phase I is skipped and the standard Simplex algorithm is applied.~\cite{wolfram} Otherwise, an auxiliary problem is formed to test the feasibility of the original problem. Namely,\cite{wolfram}
+~\indent If $$E = \emptyset  \land  \forall i \in I, b_i \geq 0$$ Phase I is skipped and the standard Simplex algorithm is applied.~\cite{wolfram} Otherwise, an auxiliary problem is formed to test the feasibility of the original problem. Namely,~\cite{wolfram}
 \begin{eqnarray*}
 \mbox{maximize}& \sum\limits_{i=1}^m (-x_{n+i})\\
 \mbox{subject to}& \sum\limits_{j=1}^n a_{ij}x_j + w_ix_{n+i} \leq b_i\mbox{\ \ }(i \in I)\\
@@ -136,22 +138,22 @@ given that $w_i = 1$ whenever $b_i \geq 0$ and $w_i = -1$ whenever $b_i < 0$~\ci
 \item For all equations where $b_i < 0$, multiply the row by -1.~\cite{wolfram}
 \item For every column, sum all rows except the objective equation and subtract this value from the objective equation coefficient in that column.~\cite{wolfram}
 \item Calculate an upper bound on the number of iterations, specifically $e \choose l$~\cite{chvatal83}, where $e$ is the number of candidates for entering the basis (the number of columns) and $l$ is the number of candidates for leaving it (the number of rows). 
-\item Loop through the following code~\cite{wolfram} until we've either solved the problem (all objective equation coefficients are nonnegative) or exceeded the aforementioned maximum iterations.
+\item Loop through the following code until we've either solved the problem (all objective equation coefficients are nonnegative) or exceeded the aforementioned maximum iterations.
   \begin{enumerate}
-  \item Choose the column with the most negative objective equation coefficient as the pivot column.
-  \item Choose the row in that column with the smallest positive $\frac{b_i}{a_{ij}}$ as the pivot row.
-  \item Pivot on that column and row by dividing every entry in the pivot row by the value at the intersection of the pivot row and column, and then multiplying every other row by a suitable multiple of the pivot row such that their value in the pivot column becomes zero.
+  \item Choose the column with the most negative objective equation coefficient as the pivot column.~\cite{wolfram}
+  \item Choose the row in that column with the smallest positive $\frac{b_i}{a_{ij}}$ as the pivot row.~\cite{wolfram}
+  \item Pivot on that column and row by dividing every entry in the pivot row by the value at the intersection of the pivot row and column, and then multiplying every other row by a suitable multiple of the pivot row such that their value in the pivot column becomes zero.~\cite{chvatal83}
   \end{enumerate}
-\item If the related problem's optimal value is 0, the original problem is solvable and the solution to the auxilary problem provides a Basic Feasible Solution for the original.~\cite{chvatal83} Transfer the first $m$ rows and $n+m$ columns of the auxilary problem's table to the original table, as well as the objective equation's row.
+\item If the related problem's optimal value is 0, the original problem is solvable and the optimal solution to the auxilary problem provides a Basic Feasible Solution for the original.~\cite{chvatal83} Transfer the first $m$ rows and $n+m$ columns of the auxilary problem's table to the original table, as well as the objective equation's row.
 \end{enumerate}
 
 \noindent \textbf{Phase II}\\
-Given that Phase I indicated the problem is solvable, start from the Basic Feasible Solution (BFS) given by Phase I and implement the standard simplex method to optimize it, looping through the following steps:~\cite{chvatal83}~\cite{wolfram}
+Given that Phase I indicated the problem is solvable, start from the Basic Feasible Solution (BFS) given by Phase I and implement the standard simplex method to optimize it, looping through the following steps:
 \begin{enumerate}
-\item If the table was produced by Phase I, choose the minimum objective equation coefficient as the pivot column. Otherwise, choose the maximum. A nonnegative minimum in the former case or a nonpositive maximum in the latter indicate a solved problem.
-\item If all entries in the pivot column are $\leq 0$, the problem is unbounded. Otherwise, the row in that column with the smallest positive $\frac{b_i}{a_{ij}}$ is the pivot row.
+\item If the table was produced by Phase I, choose the minimum objective equation coefficient as the pivot column.~\cite{chvatal83} Otherwise if Phase I was skipped, choose the maximum.~\cite{wolfram} A nonnegative minimum in the former case~\cite{chvatal83} or a nonpositive maximum in the latter~\cite{wolfram} indicate a solved problem.
+\item If all entries in the pivot column are $\leq 0$, the problem is unbounded.~\cite{chvatal83} Otherwise, the row in that column with the smallest positive $\frac{b_i}{a_{ij}}$ is the pivot row.~\cite{chvatal83}
 \end{enumerate}
-If a solution was found, all decision variables are assumed to have the value 0 unless their column $i$ contains exactly one 1 and the rest 0's, in which case that row's $b_i$ value is the value of that decision variable in the optimal solution.~\cite{chvatal83} These values and the optimal value of the objective equation are returned to the calling program.
+If a solution was found, all decision variables are assumed to have the value 0 unless their column $i$ contains exactly one 1 and the rest 0's, in which case that row's $b_i$ value is the value of that decision variable in the optimal solution.~\cite{chvatal83} These values and the optimal value of the objective equation are returned to the caller.
 
 \section{Questions}
 

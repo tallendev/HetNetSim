@@ -247,74 +247,18 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
 
     // Attempt to solve the related problem to find a BFS for the original.
     LPSolution relatedSol;
-    bool stay = true;
-    unsigned long long numIter = 0;
-    unsigned long long maxIter = choose((unsigned long long) numColumns - 1, 
-                                        (unsigned long long) numRows - 1);
-    while (stay && numIter < maxIter)
+    for (int i = 0; i < numColumns; i++)
     {
-        double minCoeff = DBL_MAX;
-	dblmatrix::size_type pivotCol;
-	for (dblmatrix::size_type i = 0; i < numColumns - 1; i++)
-	{
-	    if ((*relatedTableau)[numRows - 1][i] < minCoeff)
-	    {
-		minCoeff = (*relatedTableau)[numRows - 1][i];
-		pivotCol = i;
-	    }
-	}
-	if (minCoeff > -1 * ZERO_TOLERANCE)
-	{
-	    relatedSol.SetErrorCode(SOLVED);
-            std::cout << "related problem solved" << std::endl;
-            DisplayMatrix(relatedTableau);
-            relatedSol.SetZValue(-1 * (*relatedTableau)[numRows - 1][numColumns - 1]);
-            stay = false;
-	}
-	else
-	{
-	    double maxCoeff = -DBL_MAX;
-	    for (dblmatrix::size_type i = 0; i < numRows - 2; i++)
-	    {
-		if ((*relatedTableau)[i][pivotCol] > maxCoeff)
-		{
-		    maxCoeff = (*relatedTableau)[i][pivotCol];
-		}
-	    }
-	    if (maxCoeff < -1 * ZERO_TOLERANCE) // theoretically impossible 
-	    {
-                relatedSol.SetErrorCode(UNBOUNDED);
-                stay = false;
-	    }
-	    else
-	    {
-		double minRatio = DBL_MAX;
-		dblmatrix::size_type pivotRow;
-		for (dblmatrix::size_type i = 0; i < numRows - 2; i++)
-		{
-		    if ((*relatedTableau)[i][pivotCol] > 0)
-		    {
-			if ((*relatedTableau)[i][numColumns - 1] / 
-			    (*relatedTableau)[i][pivotCol] < minRatio)
-			{
-			    minRatio = (*relatedTableau)[i][numColumns - 1] /
-				       (*relatedTableau)[i][pivotCol];
-			    pivotRow = i;
-			}
-		    }
-		} 
-		  
-		numIter++;
-		std::cout << "Phase I iter " << numIter << std::endl;
-		Pivot(relatedTableau, pivotRow, pivotCol);
-		DisplayMatrix(relatedTableau);
-            }
+        if (!(std::abs((*relatedTableau)[numRows - 1][i]) < ZERO_TOLERANCE))
+        {
+            (*relatedTableau)[numRows - 1][i] *= -1;
         }
-    } // end while
-    
-    if (numIter == maxIter)
-        relatedSol.SetErrorCode(EXCEEDED_MAX_ITERATIONS);
-
+    }
+    std::cout << "\n\nNegative 1\n";
+    DisplayMatrix(relatedTableau);
+    Solve(relatedTableau, &relatedSol, false);
+    std::cout << "\n\nZ VALUE: " << relatedSol.GetZValue() << "\n\n";
+    std::cout << "\n\nERROR CODE: " << relatedSol.GetErrorCode() << "\n\n";
     if (relatedSol.GetErrorCode() == 0 && 
         std::abs(relatedSol.GetZValue()) < ZERO_TOLERANCE)
     {

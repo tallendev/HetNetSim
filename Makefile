@@ -1,4 +1,4 @@
-CC=g++-4.8
+CC=g++
 # CC=clang
 CFLAGS= -Wall -Wextra -Wconversion -g -std=gnu++11
 CPPEXT=cpp

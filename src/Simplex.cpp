@@ -1,27 +1,14 @@
 /**
  *
  */
-
-#include "Solver.h"
-#include "utils.h"
-#include "float.h"
-#include <cmath>
-#include <iostream>
-#include <limits>
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <string.h>
-#include <cstdio>
-
-
+#include "Simplex.h"
 Simplex::Simplex(LinearProgram* lp)
 {
     numLeqConstraints = lp->getLeqConstraints()->getSize();
     numEqConstraints = lp->getEqConstraints()->getSize();
     numConstraints = numLeqConstraints + numEqConstraints;
-    numRows = numConstrains + 1;
-    numCols = numDecisionVars + numConstrains + 1;
+    numRows = numConstraints + 1;
+    numCols = numDecisionVars + numConstraints + 1;
     std::istringstream countVars(lp->getEquation());
     std::string token;
     numDecisionVars = 0;
@@ -31,8 +18,8 @@ Simplex::Simplex(LinearProgram* lp)
         numDecisionVars++;
     }
 
-    double** table = arrayInit2d(numRows, numCols);
-    lpToTable (lp, table, &);
+    table = arrayInit2d(numRows, numCols);
+    lpToTable (lp);
 
     std::cout << "original matrix" << std::endl;
     //displayMatrix(table, &);
@@ -66,7 +53,7 @@ int Simplex::gcd(int x, int y)
     return x;
 }
 
-int Simplex::choose(unsigned long long n, unsigned long long k)
+unsigned long long Simplex::choose(int n, int k)
 {
     static const unsigned long long MAX_LONG =
         std::numeric_limits<unsigned long long>::max();
@@ -117,7 +104,7 @@ void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
     for (int i = start; i < numLeqConstraints; i++)
     {
         int j = 0;
-        std::istringstream split(leqConstraintsIter.next());
+        std::istringstream split(iterator.next());
         std::string token;
 
         while (std::getline(split, token, ' '))
@@ -133,7 +120,7 @@ void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
 
 }
 
-void Simplex::pivot(int pivotRow, int pivotCol, int numRows, int numCols)
+void Simplex::pivot(double** table, int pivotRow, int pivotCol, int numRows, int numCols)
 {
     std::cout << "pivoting on row " << pivotRow << " col " << pivotCol << std::endl;
     double pivotNumber = table[pivotRow][pivotCol];
@@ -199,25 +186,25 @@ bool Simplex::isTwoPhase()
  * -all constraints are <= or =
  * -we are trying to maximize
  */
-LPSolution* Simplex::solve(LinearProgram* lp)
+LPSolution* Simplex::solve()
 {
-    LPSolution* sol = new LinearProgram;
+    LPSolution* sol = new LPSolution();
     if (isTwoPhase())
     {
-        if (checkFeasibility(table))
+        if (checkFeasibility())
         {
             std::cout << "new matrix" << std::endl;
-            displayMatrix(table);
-            optimize(table, sol, false);
+            displayMatrix(table, numRows, numCols);
+            optimize(table, sol, numRows, numCols, numRows - 1);
         }
         else
         {
-            sol.setErrorCode(LPSolution::INFEASIBLE);
+            sol->setErrorCode(LPSolution::INFEASIBLE);
         }
     }
     else
     {
-        optimize(table, sol, false);
+        optimize(table, sol, numRows, numCols, numRows - 1);
     }
 
     arrayDel2d(table, numConstraints + 1);
@@ -226,13 +213,13 @@ LPSolution* Simplex::solve(LinearProgram* lp)
 }
 
 
-bool Solver::checkFeasibility()
+bool Simplex::checkFeasibility()
 {
     // formulate a related solvable problem based on the table and solve it.
-    int numRows = numConstraints + numEqConstraints + 2;
-    int numColumns = numDecisionVars + (2 * numConstraints) +
+    int curRows = numConstraints + numEqConstraints + 2;
+    int curColumns = numDecisionVars + (2 * numConstraints) +
                      (2 * numEqConstraints) + 1;
-    double** relatedTable = arrayInit2d(numRows, numColumns);
+    double** relatedTable = arrayInit2d(curRows, curColumns);
 
     for (int i = 0; i < numConstraints; i++)
     {
@@ -241,7 +228,7 @@ bool Solver::checkFeasibility()
             relatedTable[i][j] = table[i][j];
         }
 
-        relatedTable[i][numColumns - 1] = table[i][numDecisionVars + numConstraints];
+        relatedTable[i][curColumns - 1] = table[i][numDecisionVars + numConstraints];
     }
 
     for (int i = 0; i < numConstraints + numDecisionVars; i++)
@@ -278,7 +265,7 @@ bool Solver::checkFeasibility()
             relatedTable[i][colCounter++] = 1;
         }
 
-        for (int j = 0; j < numColumns; j++)
+        for (int j = 0; j < curColumns; j++)
         {
             relatedTable[numConstraints + rowCounter][j] = relatedTable[i][j];
         }
@@ -295,16 +282,16 @@ bool Solver::checkFeasibility()
     }
 
     for (int i = numDecisionVars + numConstraints + numEqConstraints;
-             i < numColumns - 1; i++)
+             i < curColumns - 1; i++)
     {
         relatedTable[numConstraints + numEqConstraints + 1][i] = 1;
     }
 
-    for (int i = 0; i < numRows - 1; i++)
+    for (int i = 0; i < curRows - 1; i++)
     {
-        if (relatedTable[i][numColumns - 1] < 0)
+        if (relatedTable[i][curColumns - 1] < 0)
         {
-            for (int j = 0; j < numColumns; j++)
+            for (int j = 0; j < curColumns; j++)
             {
                 if (relatedTable[i][j] != 0)
                     relatedTable[i][j] *= -1;
@@ -312,36 +299,36 @@ bool Solver::checkFeasibility()
         }
     }
 
-    for (int i = 0; i < numColumns; i++)
+    for (int i = 0; i < curColumns; i++)
     {
         double columnSum = 0;
 
-        for (int j = 0; j < numRows - 2; j++)
+        for (int j = 0; j < curRows - 2; j++)
         {
             columnSum += relatedTable[j][i];
         }
 
-        relatedTable[numRows - 1][i] -= columnSum;
+        relatedTable[curRows - 1][i] -= columnSum;
     }
 
     std::cout << "related matrix" << std::endl;
-    displayMatrix(relatedTable);
-    for (int i = 0; i < numColumns; i++)
+    displayMatrix(relatedTable, curRows, curColumns);
+    for (int i = 0; i < curColumns; i++)
     {
-        if (!(std::abs(relatedTable[numRows - 1][i]) < ZERO_TOLERANCE))
-            relatedTable[numRows - 1][i] *= -1;
+        if (!(std::abs(relatedTable[curRows - 1][i]) < ZERO_TOLERANCE))
+            relatedTable[curRows - 1][i] *= -1;
     }
     // Attempt to solve the related problem to find a BFS for the original.
     LPSolution relatedSol;
-    optimize(relatedTable, &relatedSol, true);
-    for (int i = 0; i < numColumns; i++)
+    optimize(relatedTable, &relatedSol, curRows, curColumns, curRows - 2);
+    for (int i = 0; i < curColumns; i++)
     {
-        if (!(std::abs(relatedTable[numRows - 2][i]) < ZERO_TOLERANCE))
-            relatedTable[numRows - 2][i] *= -1;
+        if (!(std::abs(relatedTable[curRows - 2][i]) < ZERO_TOLERANCE))
+            relatedTable[curRows - 2][i] *= -1;
     }
     bool solvable;
-    if (solvable = relatedSol.getErrorCode() == 0 &&
-        std::abs(relatedSol.getZValue()) < ZERO_TOLERANCE)
+    if (solvable = (relatedSol.getErrorCode() == 0 &&
+        std::abs(relatedSol.getZValue()) < ZERO_TOLERANCE))
     {
         //TODO: check for artifical variables in the basis
         // Transfer the BFS we found to the original table for solving later.
@@ -353,7 +340,7 @@ bool Solver::checkFeasibility()
             }
 
             table[i][numConstraints + numDecisionVars] =
-                relatedTable[i][numColumns - 1];
+                relatedTable[i][curColumns - 1];
         }
         for (int i = 0; i < numConstraints + numDecisionVars; i++)
         {
@@ -362,31 +349,18 @@ bool Solver::checkFeasibility()
         }
 
         table[numConstraints][numConstraints + numDecisionVars] =
-            relatedTable[numConstraints + numEqConstraints][numColumns - 1];
+            relatedTable[numConstraints + numEqConstraints][curColumns - 1];
 
     }
     return solvable;
 }
 
-void Solver::optimize(double** table, LPSolution* sol, bool twoPhase)
+void Simplex::optimize(double** table, LPSolution* sol, int curRows, int curCols, 
+                      int constraintRows)
 {
-    int numRows, numCols, constraintRows;
-    if (twoPhase)
-    {
-        numRows = numConstraints + numEqConstraints + 2;
-        numCols = numDecisionVars + (2 * numConstraints) + 
-                  (2 * numEqConstraints) + 1; 
-        constraintRows = numRows - 2;
-    }
-    else
-    {
-        numRows = numConstraints + 1;
-        numCols = numDecisionVars + numConstraints + 1;
-        constraintRows = numRows - 1;
-    }
-    double* optimalValues = new double[int numDecisionVars];
+    double* optimalValues = new double[numDecisionVars];
 
-    int maxIter = choose(numCols, numRows);
+    int maxIter = choose(curCols, curRows);
     unsigned long long numIter = 0; // number of iterations completed.
     bool stay = true;
 
@@ -395,11 +369,11 @@ void Solver::optimize(double** table, LPSolution* sol, bool twoPhase)
         int pivotCol;
         double maxCoeff = ZERO_TOLERANCE;
 		// Determine if the solution is optimal or a pivot is needed.
-		for (int col = 0; col < numCols - 1; col++)
+		for (int col = 0; col < curCols - 1; col++)
 		{
-			if (table[numRows - 1][col] > maxCoeff)
+			if (table[curRows - 1][col] > maxCoeff)
 			{
-				maxCoeff = table[numRows - 1][col];
+				maxCoeff = table[curRows - 1][col];
 				pivotCol = col;
 			}
 		}
@@ -408,7 +382,7 @@ void Solver::optimize(double** table, LPSolution* sol, bool twoPhase)
             sol->setErrorCode(LPSolution::SOLVED);
 
             std::cout << "solved" << std::endl;
-            displayMatrix(table);
+            displayMatrix(table, curRows, curCols);
 
             // evaluate the final matrix for the values of each decision variable
             for (int col = 0; col < numDecisionVars; col++)
@@ -435,19 +409,19 @@ void Solver::optimize(double** table, LPSolution* sol, bool twoPhase)
 
                 if (foundOne && !foundNonZero)
                 {
-                    optimalValues[col] = table[solutionRow][numCols - 1];
+                    optimalValues[col] = table[solutionRow][curCols - 1];
                 }
             }
 
             sol->setOptimalValues(optimalValues);
 
-            if (table[numRows - 1][numCols - 1] == 0)
+            if (table[curRows - 1][curCols - 1] == 0)
             {
                 sol->setZValue(0);
             }
             else
             {
-                sol->setZValue(-1 * table[numRows - 1][numCols - 1]);
+                sol->setZValue(-1 * table[curRows - 1][curCols - 1]);
             }
 
             stay = false; // break out of the loop to return
@@ -480,10 +454,10 @@ void Solver::optimize(double** table, LPSolution* sol, bool twoPhase)
                 {
                     if (table[row][pivotCol] > ZERO_TOLERANCE)
                     {
-                        if ((table[row][numCols - 1] /
+                        if ((table[row][curCols - 1] /
                              table[row][pivotCol]) < minRatio)
                         {
-                            minRatio = table[row][numCols - 1] /
+                            minRatio = table[row][curCols - 1] /
                                        table[row][pivotCol];
                             pivotRow = row;
                         }
@@ -491,10 +465,10 @@ void Solver::optimize(double** table, LPSolution* sol, bool twoPhase)
                 }
 
                 // pivot the table to (hopefully) increase z.
-                pivot(table, pivotRow, pivotCol);
+                pivot(table, pivotRow, pivotCol, curRows, curCols);
                 numIter++;
                 std::cout << "iter " << numIter << std::endl;
-                displayMatrix(table);
+                displayMatrix(table, curRows, curCols);
             }
         }
     } // end while loop

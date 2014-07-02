@@ -10,10 +10,13 @@
 #ifndef SOLVE_H
 #define SOLVE_H
 
+#include "LPSolution.h"
+#include "LinearProgram.h"
+
 class Solve
 {
     public:
-        virtual LPSolution* solve(LinearProgram*)=0;
-}
+        virtual LPSolution* solve()=0;
+};
 
 #endif

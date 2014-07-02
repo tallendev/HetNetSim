@@ -19,14 +19,6 @@
 
 class Solver {
     private:
-        void solve(double** table, LPSolution* sol, bool twoPhase);
-        void lpToTable (LinearProgram* lp, double** table);
-        void pivot (double** table, unsigned long long pivotrow,
-                    unsigned long long pivotcol);
-        bool checkFeasibility (double** table);
-        void displayMatrix(double** matrix);
-        unsigned long long choose(unsigned long long n, unsigned long long k);
-        unsigned long long gcd(unsigned long long x, unsigned long long y);
 
         // Don't implement these, they prevent copies from being made.
         Solver() {};
@@ -45,7 +37,7 @@ public:
         static Solver solver;
         return solver;
     }
-    LPSolution solveLP(LinearProgram* lp);
+    LPSolution* solve(LinearProgram* lp);
 
 };
 

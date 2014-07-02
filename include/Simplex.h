@@ -12,6 +12,18 @@
 
 #ifndef SIMPLEX_H
 #define SIMPLEX_H
+#include "Solve.h"
+#include "utils.h"
+#include "float.h"
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <string.h>
+#include <cstdio>
+#include <sstream>
 
 class Simplex : public Solve 
 {
@@ -26,18 +38,19 @@ class Simplex : public Solve
    protected: 
         unsigned long long choose(int n, int k);
         int gcd(int x, int y);
-        void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
+        void tokenizeToMatrix(LinkedList<std::string>* list, int start);
         virtual void displayMatrix(double** matrix, int x, int y);
-        void lpToTable (LinearProgram* lp, double** table);
-        void pivot (double** table, unsigned long long pivotrow,
-                    unsigned long long pivotcol);
-        bool checkFeasibility (double** table);
-
-    public:
-       static constexpr double ZERO_TOLERANCE = 0.0001;
-
-       virtual void solve();
+        void lpToTable (LinearProgram* lp);
+        void pivot(double** table, int pivotRow, int pivotCol, int numRows, int numCols);
+        bool checkFeasibility ();
+        void optimize(double** table, LPSolution* sol, int curRows, int curCols, int); 
+        bool isTwoPhase();
         
-}
+    public:
+        static constexpr double ZERO_TOLERANCE = 0.0001;
+        
+        Simplex(LinearProgram* lp);
+        virtual LPSolution* solve();
+};
 
 #endif

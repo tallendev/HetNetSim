@@ -9,15 +9,9 @@
  */
 
 #include "Solver.h"
-#include "utils.h"
-#include "float.h"
-#include <cmath>
-#include <iostream>
-#include <limits>
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <string.h>
-#include <cstdio>
+#include "Simplex.h"
 
-
+LPSolution* Solver::solve(LinearProgram* lp)
+{
+    return Simplex(lp).solve();
+}

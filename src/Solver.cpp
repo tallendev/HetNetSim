@@ -3,7 +3,7 @@
  * to solve other types of problems?). This is a Singleton class that receives
  * LinearProgram objects and returns LinearProgramSolutions.
  *
- * Version: 06/24/2014
+ * Version: 07/01/2014
  * Author: Tyler Allen
  * Author: Matthew Leeds
  */
@@ -91,7 +91,7 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
         {
             std::cout << "new matrix" << std::endl;
             displayMatrix(table, &);
-            solve(table, &sol, twoPhase, &);
+            solve(table, &sol, false, &);
         }
         else
         {
@@ -103,7 +103,6 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
 
     return sol;
 }
-
 
 
 bool Solver::checkFeasibility()
@@ -168,7 +167,7 @@ bool Solver::checkFeasibility()
         relatedTable[numConstraints + rowCounter]
         [numDecisionVars + numConstraints + rowCounter] = -1;
         relatedTable[numConstraints + rowCounter][colCounter + rowCounter] =
-            relatedTable[numConstraints + rowCounter][ncolCounter + rowCounter - 1];
+            relatedTable[numConstraints + rowCounter][colCounter + rowCounter - 1];
         relatedTable[numConstraints + rowCounter][colCounter + rowCounter - 1] = 0;
         rowCounter++;
         colCounter++;
@@ -185,12 +184,9 @@ bool Solver::checkFeasibility()
         if (relatedTable[i][numColumns - 1] < 0)
         {
             for (int j = 0; j < numColumns; j++)
-
             {
                 if (relatedTable[i][j] != 0)
-                {
                     relatedTable[i][j] *= -1;
-                }
             }
         }
     }
@@ -209,84 +205,19 @@ bool Solver::checkFeasibility()
 
     std::cout << "related matrix" << std::endl;
     displayMatrix(relatedTable);
-
+    for (int i = 0; i < numColumns; i++)
+    {
+        if (!(std::abs(relatedTable[numRows - 1][i]) < ZERO_TOLERANCE))
+            relatedTable[numRows - 1][i] *= -1;
+    }
     // Attempt to solve the related problem to find a BFS for the original.
     LPSolution relatedSol;
-    bool stay = true;
-    unsigned long long numIter = 0;
-    unsigned long long maxIter = choose(numColumns - 1, numRows - 1);
-
-    while (stay && numIter < maxIter)
+    solve(relatedTable, &relatedSol, true); 
+    for (int i = 0; i < numColumns; i++)
     {
-        double minCoeff = DBL_MAX;
-        int pivotCol;
-
-        for (int i = 0; i < numColumns - 1; i++)
-        {
-            if (relatedTable[numRows - 1][i] < minCoeff)
-            {
-                minCoeff = relatedTable[numRows - 1][i];
-                pivotCol = i;
-            }
-        }
-
-        if (minCoeff > -1 * ZERO_TOLERANCE)
-        {
-            relatedSol.setErrorCode(LPSolution::SOLVED);
-            std::cout << "related problem solved" << std::endl;
-            displayMatrix(relatedTable);
-            relatedSol.setZValue(-1 * relatedTable[numRows - 1][numColumns - 1]);
-            stay = false;
-        }
-        else
-        {
-            double maxCoeff = -DBL_MAX;
-
-            for (int i = 0; i < numRows - 2; i++)
-            {
-                if (relatedTable[i][pivotCol] > maxCoeff)
-                {
-                    maxCoeff = relatedTable[i][pivotCol];
-                }
-            }
-
-            if (maxCoeff < -1 * ZERO_TOLERANCE) // theoretically impossible
-            {
-                relatedSol.setErrorCode(LPSolution::UNBOUNDED);
-                stay = false;
-            }
-            else
-            {
-                double minRatio = DBL_MAX;
-                int pivotRow;
-
-                for (int i = 0; i < numRows - 2; i++)
-                {
-                    if (relatedTable[i][pivotCol] > 0)
-                    {
-                        if (relatedTable[i][numColumns - 1] /
-                            relatedTable[i][pivotCol] < minRatio)
-                        {
-                            minRatio = relatedTable[i][numColumns - 1] /
-                                       relatedTable[i][pivotCol];
-                            pivotRow = i;
-                        }
-                    }
-                }
-
-                numIter++;
-                std::cout << "Phase I iter " << numIter << std::endl;
-                pivot(relatedTable, pivotRow, pivotCol);
-                displayMatrix(relatedTable);
-            }
-        }
-    } // end while
-
-    if (numIter == maxIter)
-    {
-        relatedSol.setErrorCode(LPSolution::EXCEEDED_MAX_ITERATIONS);
+        if (!(std::abs(relatedTable[numRows - 2][i]) < ZERO_TOLERANCE))
+            relatedTable[numRows - 2][i] *= -1;
     }
-    
     bool solvable;
     if (solvable = relatedSol.getErrorCode() == 0 &&
         std::abs(relatedSol.getZValue()) < ZERO_TOLERANCE)
@@ -303,7 +234,6 @@ bool Solver::checkFeasibility()
             table[i][numConstraints + numDecisionVars] =
                 relatedTable[i][numColumns - 1];
         }
-
         for (int i = 0; i < numConstraints + numDecisionVars; i++)
         {
             table[numConstraints][i] =
@@ -319,50 +249,40 @@ bool Solver::checkFeasibility()
 
 void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
 {
-    int numRows = numConstraints + 1;
-    // generally numConstraints + 1
-    int numCols = numDecisionVars + numConstraints + 1;
-    // generally numDecisionVars + numLeqConstraints + 1
+    int numRows, numCols, constraintRows;
+    if (twoPhase)
+    {
+        numRows = numConstraints + numEqConstraints + 2;
+        numCols = numDecisionVars + (2 * numConstraints) + 
+                  (2 * numEqConstraints) + 1; 
+        constraintRows = numRows - 2;
+    }
+    else
+    {
+        numRows = numConstraints + 1;
+        numCols = numDecisionVars + numConstraints + 1;
+        constraintRows = numRows - 1;
+    }
     double* optimalValues = new double[int numDecisionVars];
 
-    int maxIter = choose(numConstraints + numDecisionVars,
-                                        numConstraints);
+    int maxIter = choose(numCols, numRows);
     unsigned long long numIter = 0; // number of iterations completed.
     bool stay = true;
 
     while (numIter < maxIter && stay)
     {
         int pivotCol;
-        double minCoeff = DBL_MAX;
         double maxCoeff = ZERO_TOLERANCE;
-
-        if (twoPhase)
-        {
-            // Determine if the solution is optimal or a pivot is needed.
-            for (int col = 0; col < numCols - 1; col++)
-            {
-                if (table[numRows - 1][col] < minCoeff)
-                {
-                    minCoeff = table[numRows - 1][col];
-                    pivotCol = col;
-                }
-            }
-        }
-        else
-        {
-            // Determine if the solution is optimal or a pivot is needed.
-            for (int col = 0; col < numCols - 1; col++)
-            {
-                if (table[numRows - 1][col] > maxCoeff)
-                {
-                    maxCoeff = table[numRows - 1][col];
-                    pivotCol = col;
-                }
-            }
-        }
-
-        if ( (twoPhase && minCoeff >= -1 * ZERO_TOLERANCE) ||
-             (!twoPhase && maxCoeff == ZERO_TOLERANCE) )
+		// Determine if the solution is optimal or a pivot is needed.
+		for (int col = 0; col < numCols - 1; col++)
+		{
+			if (table[numRows - 1][col] > maxCoeff)
+			{
+				maxCoeff = table[numRows - 1][col];
+				pivotCol = col;
+			}
+		}
+        if (maxCoeff == ZERO_TOLERANCE)
         {
             sol->setErrorCode(LPSolution::SOLVED);
 
@@ -376,7 +296,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
                 bool foundNonZero = false; // found a nonzero number (except 1st 1)
                 int solutionRow;
 
-                for (int row = 0; row < numRows; row++)
+                for (int row = 0; row < constraintRows; row++)
                 {
                     if (std::abs(table[row][col]) > ZERO_TOLERANCE)
                     {
@@ -416,7 +336,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
             // Check if all entries in pivotCol are <= 0
             double maxVar = ZERO_TOLERANCE;
 
-            for (int row = 0; row < numConstraints; row++)
+            for (int row = 0; row < constraintRows; row++)
             {
                 if (table[row][pivotCol] > maxVar)
                 {
@@ -435,7 +355,7 @@ void Solver::solve(double** table, LPSolution* sol, bool twoPhase)
                 int pivotRow;
                 double minRatio = DBL_MAX;
 
-                for (int row = 0; row < numConstraints; row++)
+                for (int row = 0; row < constraintRows; row++)
                 {
                     if (table[row][pivotCol] > ZERO_TOLERANCE)
                     {

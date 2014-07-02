@@ -19,7 +19,7 @@
 
 class Solver {
     private:
-        void solve(double** table, LPSolution* sol, bool twoPhasek);
+        void solve(double** table, LPSolution* sol, bool twoPhase);
         void lpToTable (LinearProgram* lp, double** table);
         void pivot (double** table, unsigned long long pivotrow,
                     unsigned long long pivotcol);

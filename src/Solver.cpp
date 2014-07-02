@@ -73,7 +73,7 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
         {
             // the problem is trivially feasible
             twoPhase = false;
-            solve(table, &sol, twoPhase, &);
+            solve(table, &sol, twoPhase);
         }
         else
         {
@@ -87,11 +87,11 @@ LPSolution Solver::simplexSolve(LinearProgram* lp)
 
     if (twoPhase)
     {
-        if (checkFeasibility(table, &))
+        if (checkFeasibility(table)
         {
             std::cout << "new matrix" << std::endl;
-            displayMatrix(table, &);
-            solve(table, &sol, false, &);
+            displayMatrix(table);
+            solve(table, &sol, false);
         }
         else
         {

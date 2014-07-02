@@ -265,7 +265,7 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
         // Transfer the BFS we found to the original tableau for solving later.
     for (int i = 0; i < numColumns; i++)
     {
-        if (!(std::abs((*relatedTableau)[numRows - 1][i]) < ZERO_TOLERANCE))
+        if (!(std::abs((*relatedTableau)[numRows - 2][i]) < ZERO_TOLERANCE))
         {
             (*relatedTableau)[numRows - 2][i] *= -1;
         }

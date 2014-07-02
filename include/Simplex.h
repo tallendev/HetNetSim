@@ -21,8 +21,8 @@ class Simplex : public Solve
         unsigned int numLeqConstraints;
         unsigned int numEqConstraints;
         double** table;
-        int tableX;
-        int tableY;
+        int numRows;
+        int numCols;
    protected: 
         unsigned long long choose(int n, int k);
         int gcd(int x, int y);
@@ -30,13 +30,13 @@ class Simplex : public Solve
         virtual void displayMatrix(double** matrix, int x, int y);
         void lpToTable (LinearProgram* lp, double** table);
         void pivot (double** table, unsigned long long pivotrow,
-               unsigned long long pivotcol);
+                    unsigned long long pivotcol);
+        bool checkFeasibility (double** table);
 
     public:
        static constexpr double ZERO_TOLERANCE = 0.0001;
-       static Simplex* simplexBuilder(LinearProgram*);
 
-       virtual void solve() = 0;
+       virtual void solve();
         
 }
 

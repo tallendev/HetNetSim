@@ -94,7 +94,7 @@ LPSolution Solver::SimplexSolve(LinearProgram* lp)
         {
             std::cout << "new matrix" << std::endl;
             DisplayMatrix(tableau);
-            Solve(tableau, &sol, twoPhase);
+            Solve(tableau, &sol, false);
         }
         else
             sol.SetErrorCode(INFEASIBLE);
@@ -244,9 +244,6 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
 
     std::cout << "related matrix" << std::endl;
     DisplayMatrix(relatedTableau);
-
-    // Attempt to solve the related problem to find a BFS for the original.
-    LPSolution relatedSol;
     for (int i = 0; i < numColumns; i++)
     {
         if (!(std::abs((*relatedTableau)[numRows - 1][i]) < ZERO_TOLERANCE))
@@ -254,9 +251,11 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
             (*relatedTableau)[numRows - 1][i] *= -1;
         }
     }
+    // Attempt to solve the related problem to find a BFS for the original.
+    LPSolution relatedSol;
     std::cout << "\n\nNegative 1\n";
     DisplayMatrix(relatedTableau);
-    Solve(relatedTableau, &relatedSol, false);
+    Solve(relatedTableau, &relatedSol, true);
     std::cout << "\n\nZ VALUE: " << relatedSol.GetZValue() << "\n\n";
     std::cout << "\n\nERROR CODE: " << relatedSol.GetErrorCode() << "\n\n";
     if (relatedSol.GetErrorCode() == 0 && 
@@ -264,6 +263,16 @@ bool Solver::CheckFeasibility(dblmatrix* tableau)
     {
         //TODO: check for artifical variables in the basis
         // Transfer the BFS we found to the original tableau for solving later.
+    for (int i = 0; i < numColumns; i++)
+    {
+        if (!(std::abs((*relatedTableau)[numRows - 1][i]) < ZERO_TOLERANCE))
+        {
+            (*relatedTableau)[numRows - 2][i] *= -1;
+        }
+    }
+    std::cout << "switched back to negative values" << std::endl;
+    DisplayMatrix(relatedTableau);
+   
         for (dblmatrix::size_type i = 0; i < numConstraints; i++)
         {
             for (dblmatrix::size_type j = 0; j < numConstraints + numDecisionVars; j++)
@@ -337,9 +346,12 @@ void Solver::lpToTableau(LinearProgram* lp, dblmatrix* tableau)
 void Solver::Solve(dblmatrix* tableau, LPSolution* sol, bool twoPhase)
 {
     dblmatrix::size_type numRows = tableau->size(); 
-    // generally numConstraints + 1
     dblmatrix::size_type numCols = ((*tableau)[0]).size(); 
-    // generally numDecisionVars + numLeqConstraints + 1
+    dblmatrix::size_type constraintRows;
+    if (twoPhase)
+        constraintRows = numRows - 2;
+    else
+        constraintRows = numRows - 1;  
     std::vector<double> optimalValues ((unsigned long) numDecisionVars, 0);
 
     unsigned long long maxIter = choose((unsigned long long) numConstraints + 
@@ -350,22 +362,7 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol, bool twoPhase)
     while (numIter < maxIter && stay)
     {
         dblmatrix::size_type pivotCol;
-        double minCoeff = DBL_MAX;
         double maxCoeff = ZERO_TOLERANCE;
-        if (twoPhase)
-        {
-	    // Determine if the solution is optimal or a pivot is needed.
-	    for (dblmatrix::size_type col = 0; col < numCols - 1; col++)
-	    {
-		if ((*tableau)[numRows - 1][col] < minCoeff)
-		{
-		    minCoeff = (*tableau)[numRows - 1][col];
-		    pivotCol = col;
-		}
-	    }
-        }
-        else
-        {
 	    // Determine if the solution is optimal or a pivot is needed.
 	    for (dblmatrix::size_type col = 0; col < numCols - 1; col++)
 	    {
@@ -375,9 +372,7 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol, bool twoPhase)
 		    pivotCol = col;
 		}
 	    }
-        }
-	if ( (twoPhase && minCoeff >= -1 * ZERO_TOLERANCE) || 
-             (!twoPhase && maxCoeff == ZERO_TOLERANCE) )
+	if (maxCoeff == ZERO_TOLERANCE)
 	{
 	    sol->SetErrorCode(SOLVED);
 
@@ -390,7 +385,7 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol, bool twoPhase)
                 bool foundOne = false; // found a 1 in this column
                 bool foundNonZero = false; // found a nonzero number (except 1st 1)
                 dblmatrix::size_type solutionRow; 
-                for (dblmatrix::size_type row = 0; row < numRows; row++)
+                for (dblmatrix::size_type row = 0; row < constraintRows; row++)
                 {
                     if (std::abs((*tableau)[row][col]) > ZERO_TOLERANCE)
                     {
@@ -422,7 +417,7 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol, bool twoPhase)
 	{
 	    // Check if all entries in pivotCol are <= 0
 	    double maxVar = ZERO_TOLERANCE;
-	    for (dblmatrix::size_type row = 0; row < numConstraints; row++)
+	    for (dblmatrix::size_type row = 0; row < constraintRows; row++)
 	    {
 		if ((*tableau)[row][pivotCol] > maxVar)
 		    maxVar = (*tableau)[row][pivotCol];
@@ -437,7 +432,7 @@ void Solver::Solve(dblmatrix* tableau, LPSolution* sol, bool twoPhase)
 		// Determine pivot row.
 		dblmatrix::size_type pivotRow;
 		double minRatio = DBL_MAX;
-		for (dblmatrix::size_type row = 0; row < numConstraints; row++)
+		for (dblmatrix::size_type row = 0; row < constraintRows; row++)
 		{
 		    if ((*tableau)[row][pivotCol] > ZERO_TOLERANCE)
 		    {

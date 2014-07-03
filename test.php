@@ -1,4 +1,4 @@
 <?php
-$a = cppMain();
+$a = cppMain("Neat");
 echo $a;
 ?>

@@ -7,8 +7,9 @@
 #include <sstream>
 #include <iostream>
 
-std::string cppMain(void)
+std::string cppMain(std::string problem)
 {
+    std::cerr << "Problem: " << problem << std::endl;
     LinearProgram* pTestProblem = new LinearProgram("5 4 3");
     pTestProblem->addLeqConstraint("2 3 1 5");
     pTestProblem->addLeqConstraint("4 1 2 11");

@@ -1104,8 +1104,9 @@ extern "C" {
 #include <sstream>
 #include <iostream>
 
-std::string cppMain(void)
+std::string cppMain(std::string problem)
 {
+    std::cerr << "Problem: " << problem << std::endl;
     LinearProgram* pTestProblem = new LinearProgram("5 4 3");
     pTestProblem->addLeqConstraint("2 3 1 5");
     pTestProblem->addLeqConstraint("4 1 2 11");
@@ -1155,14 +1156,20 @@ static swig_cast_info *swig_cast_initial[] = {
 /* end vdecl subsection */
 /* wrapper section */
 ZEND_NAMED_FUNCTION(_wrap_cppMain) {
+  std::string arg1 ;
+  zval **args[1];
   std::string result;
   
   SWIG_ResetError(TSRMLS_C);
-  if(ZEND_NUM_ARGS() != 0) {
+  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {
     WRONG_PARAM_COUNT;
   }
   
-  result = cppMain();
+  
+  convert_to_string_ex(args[0]);
+  (&arg1)->assign(Z_STRVAL_PP(args[0]), Z_STRLEN_PP(args[0]));
+  
+  result = cppMain(arg1);
   
   ZVAL_STRINGL(return_value, const_cast<char*>((&result)->data()), (&result)->size(), 1);
   
@@ -1178,6 +1185,7 @@ fail:
 
 /* arginfo subsection */
 ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_cppmain, 0, 0, 0)
+ ZEND_ARG_PASS_INFO(0)
 ZEND_END_ARG_INFO()
 
 

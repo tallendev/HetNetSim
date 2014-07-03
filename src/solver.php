@@ -27,8 +27,8 @@ if (!extension_loaded('solver')) {
 
 
 abstract class solver {
-	static function cppMain() {
-		return cppMain();
+	static function cppMain($problem) {
+		return cppMain($problem);
 	}
 }
 

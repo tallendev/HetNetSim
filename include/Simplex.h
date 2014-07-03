@@ -28,16 +28,16 @@
 class Simplex : public Solve 
 {
     private:
-        unsigned int numDecisionVars;
-        unsigned int numConstraints;
-        unsigned int numLeqConstraints;
-        unsigned int numEqConstraints;
+        int numDecisionVars;
+        int numConstraints;
+        int numLeqConstraints;
+        int numEqConstraints;
         double** table;
         int numRows;
         int numCols;
    protected: 
         unsigned long long choose(int n, int k);
-        int gcd(int x, int y);
+        unsigned long long gcd(unsigned long long x, unsigned long long y);
         void tokenizeToMatrix(LinkedList<std::string>* list, int start);
         virtual void displayMatrix(double** matrix, int x, int y);
         void lpToTable (LinearProgram* lp);

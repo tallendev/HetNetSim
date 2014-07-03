@@ -46,9 +46,9 @@ Simplex::Simplex(LinearProgram* lp)
 // prints a matrix to stdout for debugging
 void Simplex::displayMatrix(double** matrix, int x, int y)
 {
-    for (unsigned long long i = 0; i < x; i++)
+    for (int i = 0; i < x; i++)
     {
-        for (unsigned long long j = 0; j < y; j++)
+        for (int j = 0; j < y; j++)
         {
             printf("%7.2f", matrix[i][j]);
         }
@@ -63,7 +63,7 @@ void Simplex::displayMatrix(double** matrix, int x, int y)
  * Finds the greatest common denominator given two numbers.
  * Used in the choose method.
  */
-int Simplex::gcd(int x, int y)
+unsigned long long Simplex::gcd(unsigned long long x, unsigned long long y)
 {
     while (y != 0)
     {
@@ -91,9 +91,9 @@ unsigned long long Simplex::choose(int n, int k)
     {
         bool overflow = false;
 
-        for (unsigned long long d = 1; d <= k && !overflow; ++d, --n)
+        for (int d = 1; d <= k && !overflow; ++d, --n)
         {
-            unsigned long long g = gcd(r, d);
+            unsigned long long g = gcd(r, (unsigned long long) d);
             r /= g;
             unsigned long long t = n / (d / g);
 
@@ -127,7 +127,7 @@ void Simplex::lpToTable(LinearProgram* lp)
     std::istringstream split(lp->getEquation());
     std::string token;
 
-    for (unsigned long long i = 0; std::getline(split, token, ' '); i++)
+    for (int i = 0; std::getline(split, token, ' '); i++)
     {
         std::istringstream(token) >> table[numConstraints][i];
     }
@@ -218,7 +218,7 @@ bool Simplex::isTwoPhase()
 
     if (numEqConstraints == 0)
     {
-        for (unsigned long long i = 0; i < numLeqConstraints; i++)
+        for (int i = 0; i < numLeqConstraints; i++)
         {
             if (table[i][numDecisionVars + numConstraints] < 0)
             {
@@ -419,8 +419,8 @@ bool Simplex::checkFeasibility()
     // Check if the auxiliary problem's optimal value is 0, which means we
     // found a BFS for the original.
     bool solvable;
-    if (solvable = (relatedSol.getErrorCode() == 0 &&
-        std::abs(relatedSol.getZValue()) < ZERO_TOLERANCE))
+    if ((solvable = (relatedSol.getErrorCode() == 0 &&
+        std::abs(relatedSol.getZValue()) < ZERO_TOLERANCE)))
     {
         //TODO: check for artifical variables in the basis
         // Transfer the BFS we found to the original table for solving later.
@@ -460,7 +460,7 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows,
 {
     double* optimalValues = new double[numDecisionVars];
 
-    int maxIter = choose(curCols, curRows);
+    unsigned long long maxIter = choose(curCols, curRows);
     unsigned long long numIter = 0; // number of iterations completed.
     bool stay = true;
 

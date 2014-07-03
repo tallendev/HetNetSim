@@ -1,4 +1,5 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
-int cppMain(void);
+#include <string>
+std::string cppMain(void);
 #endif

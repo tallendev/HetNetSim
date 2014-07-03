@@ -989,6 +989,23 @@ static void SWIG_Php_SetModule(swig_module_info *pointer) {
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }
 
+/*  Errors in SWIG */
+#define  SWIG_UnknownError    	   -1 
+#define  SWIG_IOError        	   -2 
+#define  SWIG_RuntimeError   	   -3 
+#define  SWIG_IndexError     	   -4 
+#define  SWIG_TypeError      	   -5 
+#define  SWIG_DivisionByZero 	   -6 
+#define  SWIG_OverflowError  	   -7 
+#define  SWIG_SyntaxError    	   -8 
+#define  SWIG_ValueError     	   -9 
+#define  SWIG_SystemError    	   -10
+#define  SWIG_AttributeError 	   -11
+#define  SWIG_MemoryError    	   -12 
+#define  SWIG_NullReferenceError   -13
+
+
+
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
@@ -1076,12 +1093,13 @@ extern "C" {
 
 
 #include "interface.h"
-#include <iostream>
 #include "LinearProgram.h"
 #include "LPSolution.h"
 #include "Solver.h"
+#include <sstream>
+#include <iostream>
 
-int cppMain(void)
+std::string cppMain(void)
 {
     LinearProgram* pTestProblem = new LinearProgram("5 4 3");
     pTestProblem->addLeqConstraint("2 3 1 5");
@@ -1089,16 +1107,30 @@ int cppMain(void)
     pTestProblem->addLeqConstraint("3 4 2 8");
     LPSolution* answer = Solver::getInstance().solve(pTestProblem);
     std::cout << "answer error code = " << answer->getErrorCode() << std::endl;
+    std::ostringstream s;
     if (answer->getErrorCode() == 0) {
-        std::cout << "z value: " << answer->getZValue() << std::endl;
         double* answervals = answer->getOptimalValues();
-        std::cout << "answer values: " << answervals[0] << std::endl; 
-        std::cout << "answer values: " << answervals[1] << std::endl; 
-        std::cout << "answer values: " << answervals[2] << std::endl; 
+        s << "z value: " << answer->getZValue() << "\n" << "answer values: " <<
+              answervals[0] << " " << answervals[1] << " " << answervals[2] <<
+              "\n";
     }
     delete pTestProblem;
-    return 0;
+    return s.str();
 }
+
+
+#if PHP_MAJOR_VERSION < 5
+# define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
+#else
+# include "zend_exceptions.h"
+# define SWIG_exception(code, msg) { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); }
+#endif
+
+
+#include <stdexcept>
+
+
+#include <string>
 
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
@@ -1121,17 +1153,17 @@ static swig_cast_info *swig_cast_initial[] = {
 /* end vdecl subsection */
 /* wrapper section */
 ZEND_NAMED_FUNCTION(_wrap_cppMain) {
-  int result;
+  std::string result;
   
   SWIG_ResetError();
   if(ZEND_NUM_ARGS() != 0) {
     WRONG_PARAM_COUNT;
   }
   
-  result = (int)cppMain();
-  {
-    ZVAL_LONG(return_value,result);
-  }
+  result = cppMain();
+  
+  ZVAL_STRINGL(return_value, const_cast<char*>((&result)->data()), (&result)->size(), 1);
+  
   return;
 fail:
   zend_error(SWIG_ErrorCode(),"%s",SWIG_ErrorMsg());

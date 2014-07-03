@@ -1,31 +1,49 @@
 /**
+ * This is the implementation of the Simplex class. It solves linear 
+ * programming problems using the two-phase simplex method. Users of the class 
+ * should be able to instantiate a Simplex obect with a LinearProgram object
+ * and call solve() on it, which returns a pointer to an LPSolution object.
+ * For details on the algorithm, see the documentation.
+ *  
+ * Version: 07/03/2014
+ * Author: Matthew Leeds
+ * Author: Tyler Allen
  *
  */
+
 #include "Simplex.h"
+
+/**
+ * Constructor for Simplex objects.
+ * Takes in a Linear Program, determines the number of constraints,
+ * rows, and columns, and calls lpToTable on it to format it as a matrix.
+ */
 Simplex::Simplex(LinearProgram* lp)
 {
     numLeqConstraints = lp->getLeqConstraints()->getSize();
     numEqConstraints = lp->getEqConstraints()->getSize();
     numConstraints = numLeqConstraints + numEqConstraints;
-    numRows = numConstraints + 1;
-    numCols = numDecisionVars + numConstraints + 1;
+
     std::istringstream countVars(lp->getEquation());
     std::string token;
     numDecisionVars = 0;
-
     while (std::getline(countVars, token, ' '))
     {
         numDecisionVars++;
     }
 
+    numRows = numConstraints + 1;
+    numCols = numDecisionVars + numConstraints + 1;
     table = arrayInit2d(numRows, numCols);
-    lpToTable (lp);
+    lpToTable (lp); // converts the LP into matrix format 
+                    // for more efficient solving
 
     std::cout << "original matrix" << std::endl;
-    //displayMatrix(table, &);
+    displayMatrix(table, numRows, numCols);
 
 }
 
+// prints a matrix to stdout for debugging
 void Simplex::displayMatrix(double** matrix, int x, int y)
 {
     for (unsigned long long i = 0; i < x; i++)
@@ -41,6 +59,10 @@ void Simplex::displayMatrix(double** matrix, int x, int y)
     printf("\n");
 }
 
+/**
+ * Finds the greatest common denominator given two numbers.
+ * Used in the choose method.
+ */
 int Simplex::gcd(int x, int y)
 {
     while (y != 0)
@@ -53,6 +75,11 @@ int Simplex::gcd(int x, int y)
     return x;
 }
 
+/**
+ * Calculates the combination (n choose k), which is used as
+ * an upper limit on the number of iterations the solver is 
+ * allowed to complete.
+ */
 unsigned long long Simplex::choose(int n, int k)
 {
     static const unsigned long long MAX_LONG =
@@ -85,6 +112,14 @@ unsigned long long Simplex::choose(int n, int k)
     return r;
 }
 
+/**
+ * Converts a LinearProgram into matrix (table) format
+ * by splitting it with spaces as the delimiter.
+ *
+ * Assumes that there are only <= and = constraints, that the objective 
+ * equation has no constant argument (just coefficients), and that each 
+ * constraint has n + 1 numbers, one for each decision variable and a constant.
+ */ 
 void Simplex::lpToTable(LinearProgram* lp)
 {
     tokenizeToMatrix(lp->getLeqConstraints(), 0);
@@ -98,6 +133,11 @@ void Simplex::lpToTable(LinearProgram* lp)
     }
 }
 
+/**
+ * A helper method for lpToTable.
+ * Takes in a list and starting value and puts each number in the list
+ * into the table on the row indicated by the starting value.
+ */
 void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
 {
     LinkedList<std::string>::ListIterator iterator = list->iterator();
@@ -120,7 +160,17 @@ void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
 
 }
 
-void Simplex::pivot(double** table, int pivotRow, int pivotCol, int numRows, int numCols)
+/**
+ * Pivots a table given a pivot row, pivot column, and the length and 
+ * width of the table. This increases the value of the variable indicated by
+ * the pivot column (by having it enter the basis). The pivot row indicates
+ * the variable that leaves the basis. The pivot is accomplished by dividing
+ * every entry in the pivot row by the value at table[pivotRow][pivotCol],
+ * and subtracting from every other row a multiple of this new pivot row, 
+ * such that they have the value 0 in the pivot column.   
+ */
+void Simplex::pivot(double** table, int pivotRow, int pivotCol, 
+                                    int numRows, int numCols)
 {
     std::cout << "pivoting on row " << pivotRow << " col " << pivotCol << std::endl;
     double pivotNumber = table[pivotRow][pivotCol];
@@ -150,12 +200,20 @@ void Simplex::pivot(double** table, int pivotRow, int pivotCol, int numRows, int
     }
 }
 
+/**
+ * Checks if the solution indicated by the table is already a Basic Feasible 
+ * Solution, which would mean Phase I (the feasibility check) can be skipped.
+ * You can tell this because if there are no equality constraints, 
+ * only inequality ones, and all the b-values (the constants) are 
+ * positive, just set all decision variables equal to zero and you have 
+ * a BFS.
+ *
+ * When true is returned from this, go through both phases of the simplex
+ * method. Otherwise, just use the standard simplex method (Phase II).
+ */
 bool Simplex::isTwoPhase()
 {
-    // TODO: check for cycling?
     bool twoPhase = true;
-    // If there are only inequality constraints ond no b values < 0, we
-    // can use the origin as a BFS instead of using the Two Phase method.
     int negBValues = 0; // number of inequalities with b < 0
 
     if (numEqConstraints == 0)
@@ -179,12 +237,11 @@ bool Simplex::isTwoPhase()
 
 
 /**
- * Implementation of classic simplex method to solving linear programs.
- * Currently assumes:
- * -the problem is in the correct form
- * -the objective function has no constant argument (just coefficients)
- * -all constraints are <= or =
- * -we are trying to maximize
+ * Implementation of standard simplex method.
+ * This determines if Phase I is necessary using isTwoPhase(), 
+ * calls checkFeasibility() if it is. optimize() is then called in either 
+ * case to (hopefully) arrive at a final optimal solution, and an LPSolution
+ * object is returned based on that.
  */
 LPSolution* Simplex::solve()
 {
@@ -212,15 +269,27 @@ LPSolution* Simplex::solve()
     return sol;
 }
 
-
+/**
+ * CheckFeasiblity() is Phase I of the Two-Phase Simplex Method. It forms
+ * an auxiliary problem to the original by adding "artificial" extra slack
+ * variables that ensure it has a Basic Feasible Solution even if the original
+ * doesn't. This auxilary problem, which trys to minimize all the artificial
+ * variables to zero, is solved using the optimize() method. If the optimal 
+ * value is 0, it means the original problem can be solved using the BFS 
+ * indicated by the final table. In that case, the appropriate rows and 
+ * columns are copied over to the original table. Otherwise, 
+ * false is returned.
+ */
 bool Simplex::checkFeasibility()
 {
-    // formulate a related solvable problem based on the table and solve it.
+    // Instantiate a table for the related (auxilary) problem.
     int curRows = numConstraints + numEqConstraints + 2;
     int curColumns = numDecisionVars + (2 * numConstraints) +
                      (2 * numEqConstraints) + 1;
     double** relatedTable = arrayInit2d(curRows, curColumns);
 
+    // Copy the  constraints from the original problem into the 
+    // first m rows and n+m columns of relatedTable.
     for (int i = 0; i < numConstraints; i++)
     {
         for (int j = 0; j < numDecisionVars + numConstraints; j++)
@@ -231,15 +300,18 @@ bool Simplex::checkFeasibility()
         relatedTable[i][curColumns - 1] = table[i][numDecisionVars + numConstraints];
     }
 
+    // Copy the objective equation over. 
     for (int i = 0; i < numConstraints + numDecisionVars; i++)
     {
         relatedTable[numConstraints + numEqConstraints][i] =
             table[numConstraints][i];
     }
 
-    int colCounter = numDecisionVars + numConstraints +
-                     numEqConstraints;
+    // Used to keep track of which column needs the next artifical variable.
+    int colCounter = numDecisionVars + numConstraints + numEqConstraints;
 
+    // Add an artificial slack variable for each inequality constraint,
+    // -1 when b is negative, 1 otherwise.
     for (int i = 0; i < numLeqConstraints; i++)
     {
         if (table[i][numDecisionVars + numConstraints] < 0)
@@ -253,7 +325,8 @@ bool Simplex::checkFeasibility()
     }
 
     int rowCounter = 0;
-
+    // Add artificial variables for each equality constraint, and make a second
+    // copy of each with an opposite-valued artificial variable. 
     for (int i = numLeqConstraints; i < numConstraints; i++)
     {
         if (table[i][numDecisionVars + numConstraints] < 0)
@@ -272,21 +345,29 @@ bool Simplex::checkFeasibility()
 
         relatedTable[numConstraints + rowCounter]
         [numDecisionVars + numLeqConstraints + rowCounter] = 0;
+
         relatedTable[numConstraints + rowCounter]
         [numDecisionVars + numConstraints + rowCounter] = -1;
+
         relatedTable[numConstraints + rowCounter][colCounter + rowCounter] =
-            relatedTable[numConstraints + rowCounter][colCounter + rowCounter - 1];
-        relatedTable[numConstraints + rowCounter][colCounter + rowCounter - 1] = 0;
+        relatedTable[numConstraints + rowCounter][colCounter + rowCounter - 1];
+
+        relatedTable[numConstraints + rowCounter]
+                    [colCounter + rowCounter - 1] = 0;
+
         rowCounter++;
         colCounter++;
     }
-
+    
+    // Set the objective equation of the auxiliary problem to have a 1 in 
+    // each artificial variable column. We're trying to minimize their sum.
     for (int i = numDecisionVars + numConstraints + numEqConstraints;
              i < curColumns - 1; i++)
     {
         relatedTable[numConstraints + numEqConstraints + 1][i] = 1;
     }
-
+    
+    // Multiply rows with negative b-values by -1 to simplify the solving.
     for (int i = 0; i < curRows - 1; i++)
     {
         if (relatedTable[i][curColumns - 1] < 0)
@@ -298,7 +379,9 @@ bool Simplex::checkFeasibility()
             }
         }
     }
-
+    
+    // Sum each column and subtract that from the entry in the last row, 
+    // the objective equation.
     for (int i = 0; i < curColumns; i++)
     {
         double columnSum = 0;
@@ -313,19 +396,28 @@ bool Simplex::checkFeasibility()
 
     std::cout << "related matrix" << std::endl;
     displayMatrix(relatedTable, curRows, curColumns);
+
+    // Multiply the objective equation row by -1 so it can be solved as a 
+    // maximization.
     for (int i = 0; i < curColumns; i++)
     {
         if (!(std::abs(relatedTable[curRows - 1][i]) < ZERO_TOLERANCE))
             relatedTable[curRows - 1][i] *= -1;
     }
+
     // Attempt to solve the related problem to find a BFS for the original.
     LPSolution relatedSol;
     optimize(relatedTable, &relatedSol, curRows, curColumns, curRows - 2);
-    for (int i = 0; i < curColumns; i++)
+    
+    // Multiply the original problem's objective equation by -1. 
+    for (int i = 0; i < curColumns - 1; i++)
     {
         if (!(std::abs(relatedTable[curRows - 2][i]) < ZERO_TOLERANCE))
             relatedTable[curRows - 2][i] *= -1;
     }
+
+    // Check if the auxiliary problem's optimal value is 0, which means we
+    // found a BFS for the original.
     bool solvable;
     if (solvable = (relatedSol.getErrorCode() == 0 &&
         std::abs(relatedSol.getZValue()) < ZERO_TOLERANCE))
@@ -355,8 +447,16 @@ bool Simplex::checkFeasibility()
     return solvable;
 }
 
-void Simplex::optimize(double** table, LPSolution* sol, int curRows, int curCols, 
-                      int constraintRows)
+/**
+ * The core of the Simplex method. This takes in a table, solution object,
+ * the size of the table, and how many of the rows are for constraints
+ * (rather than objective equations). It then tries to pivot the table
+ * as many times as necessary (under a limit) to increase the z-value (the
+ * value of the objective equation). See the documentation for details on 
+ * the algorithm used.
+ */
+void Simplex::optimize(double** table, LPSolution* sol, int curRows, 
+                      int curCols, int constraintRows)
 {
     double* optimalValues = new double[numDecisionVars];
 
@@ -415,7 +515,7 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows, int curCols
 
             sol->setOptimalValues(optimalValues);
 
-            if (table[curRows - 1][curCols - 1] == 0)
+            if (std::abs(table[curRows - 1][curCols - 1]) < ZERO_TOLERANCE)
             {
                 sol->setZValue(0);
             }

@@ -17,6 +17,7 @@ int main(void)
     std::cout << "answer values: " << answervals[0] << std::endl; 
     std::cout << "answer values: " << answervals[1] << std::endl; 
     }
+    delete answer;
     delete pTestProblem;
     return 0;
 }

@@ -14,7 +14,7 @@ std::string cppMain(void)
     pTestProblem->addLeqConstraint("4 1 2 11");
     pTestProblem->addLeqConstraint("3 4 2 8");
     LPSolution* answer = Solver::getInstance().solve(pTestProblem);
-    std::cout << "answer error code = " << answer->getErrorCode() << std::endl;
+    std::cerr << "answer error code = " << answer->getErrorCode() << std::endl;
     std::ostringstream s;
     if (answer->getErrorCode() == 0) {
         double* answervals = answer->getOptimalValues();
@@ -22,6 +22,7 @@ std::string cppMain(void)
               answervals[0] << " " << answervals[1] << " " << answervals[2] <<
               "\n";
     }
+    delete answer;
     delete pTestProblem;
     return s.str();
 }

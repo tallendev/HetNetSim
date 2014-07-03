@@ -444,6 +444,7 @@ bool Simplex::checkFeasibility()
             relatedTable[numConstraints + numEqConstraints][curColumns - 1];
 
     }
+    arrayDel2d(relatedTable, curRows);
     return solvable;
 }
 
@@ -458,7 +459,7 @@ bool Simplex::checkFeasibility()
 void Simplex::optimize(double** table, LPSolution* sol, int curRows, 
                       int curCols, int constraintRows)
 {
-    double* optimalValues = new double[numDecisionVars];
+    double* optimalValues = new double[numDecisionVars]();
 
     unsigned long long maxIter = choose(curCols, curRows);
     unsigned long long numIter = 0; // number of iterations completed.

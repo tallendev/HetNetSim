@@ -38,8 +38,10 @@ Simplex::Simplex(LinearProgram* lp)
     lpToTable (lp); // converts the LP into matrix format 
                     // for more efficient solving
 
-    std::cerr << "original matrix" << std::endl;
-    displayMatrix(table, numRows, numCols);
+    #ifdef SERVER_DEBUG
+        std::cerr << "original matrix" << std::endl;
+        displayMatrix(table, numRows, numCols);
+    #endif
 
 }
 
@@ -141,7 +143,7 @@ void Simplex::lpToTable(LinearProgram* lp)
 void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
 {
     LinkedList<std::string>::ListIterator iterator = list->iterator();
-    for (int i = start; i < numLeqConstraints; i++)
+    for (int i = start; i < list->getSize(); i++)
     {
         int j = 0;
         std::istringstream split(iterator.next());
@@ -171,8 +173,10 @@ void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
  */
 void Simplex::pivot(double** table, int pivotRow, int pivotCol, 
                                     int numRows, int numCols)
-{
-    std::cerr << "pivoting on row " << pivotRow << " col " << pivotCol << std::endl;
+{   
+    #ifdef SERVER_DEBUG
+        std::cerr << "pivoting on row " << pivotRow << " col " << pivotCol << std::endl;
+    #endif
     double pivotNumber = table[pivotRow][pivotCol];
 
     for (int col = 0; col < numCols; col++)
@@ -250,8 +254,10 @@ LPSolution* Simplex::solve()
     {
         if (checkFeasibility())
         {
-            std::cerr << "new matrix" << std::endl;
-            displayMatrix(table, numRows, numCols);
+            #ifdef SERVER_DEBUG
+                std::cerr << "new matrix" << std::endl;
+                displayMatrix(table, numRows, numCols);
+            #endif
             optimize(table, sol, numRows, numCols, numRows - 1);
         }
         else
@@ -394,9 +400,10 @@ bool Simplex::checkFeasibility()
         relatedTable[curRows - 1][i] -= columnSum;
     }
 
-    std::cerr << "related matrix" << std::endl;
-    displayMatrix(relatedTable, curRows, curColumns);
-
+    #ifdef SERVER_DEBUG
+        std::cerr << "related matrix" << std::endl;
+        displayMatrix(relatedTable, curRows, curColumns);
+    #endif
     // Multiply the objective equation row by -1 so it can be solved as a 
     // maximization.
     for (int i = 0; i < curColumns; i++)
@@ -482,9 +489,10 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows,
         {
             sol->setErrorCode(LPSolution::SOLVED);
 
-            std::cerr << "solved" << std::endl;
-            displayMatrix(table, curRows, curCols);
-
+            #ifdef SERVER_DEBUG
+                std::cerr << "solved" << std::endl;
+                displayMatrix(table, curRows, curCols);
+            #endif
             // evaluate the final matrix for the values of each decision variable
             for (int col = 0; col < numDecisionVars; col++)
             {
@@ -568,8 +576,10 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows,
                 // pivot the table to (hopefully) increase z.
                 pivot(table, pivotRow, pivotCol, curRows, curCols);
                 numIter++;
-                std::cerr << "iter " << numIter << std::endl;
-                displayMatrix(table, curRows, curCols);
+                #ifdef SERVER_DEBUG
+                    std::cerr << "iter " << numIter << std::endl;
+                    displayMatrix(table, curRows, curCols);
+                #endif 
             }
         }
     } // end while loop

@@ -23,7 +23,7 @@ class Solver {
         // Don't implement these, they prevent copies from being made.
         Solver() {};
         Solver(Solver const &copy);
-    Solver &operator=(Solver const &copy);
+        Solver &operator=(Solver const &copy);
 
 public:
     /**
@@ -37,7 +37,7 @@ public:
         static Solver solver;
         return solver;
     }
-    LPSolution* solve(LinearProgram* lp);
+    LPSolution* solve(std::string& problem);
 
 };
 

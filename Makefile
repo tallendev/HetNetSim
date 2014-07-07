@@ -1,6 +1,6 @@
-CC=g++-4.8
-#CC=clang
-CFLAGS= -Wall -Wextra -Wconversion -g -std=gnu++11
+#CC=g++-4.8
+CC=clang
+CFLAGS= -Wall -Wextra -Wconversion -g -std=gnu++11 -DSERVER_DEBUG
 CPPEXT=cpp
 HEXT=h
 OBJEXT=o

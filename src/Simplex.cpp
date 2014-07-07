@@ -141,7 +141,7 @@ void Simplex::lpToTable(LinearProgram* lp)
 void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
 {
     LinkedList<std::string>::ListIterator iterator = list->iterator();
-    for (int i = start; i < numLeqConstraints; i++)
+    for (int i = start; i < list->getSize(); i++)
     {
         int j = 0;
         std::istringstream split(iterator.next());

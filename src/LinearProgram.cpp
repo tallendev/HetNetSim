@@ -21,7 +21,7 @@ LinearProgram::LinearProgram(std::string equation) : equation (equation)
 /**
  * getEquation method. Returns the equation as a string.
  */
-std::string LinearProgram::getEquation()
+std::string& LinearProgram::getEquation()
 {
     return equation;
 }

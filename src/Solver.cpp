@@ -21,13 +21,12 @@ LPSolution* Solver::solve(std::string& problem)
     #ifdef SERVER_DEBUG
         std::cerr << "objeqn: " << problem.substr(0, firstsemicolon) << std::endl;
     #endif
-    // Add each inequality constraint to the problem object.
     
     if (secondsemicolon > firstsemicolon + 1)
     {
         std::string str = problem.substr(firstsemicolon + 1, 
                                          secondsemicolon - firstsemicolon - 1);
-        std::istringstream split(problem);
+        std::istringstream split(str);
         std::string token;
         while (std::getline(split, token, ','))
         {
@@ -41,7 +40,7 @@ LPSolution* Solver::solve(std::string& problem)
     {
         std::string str = problem.substr(secondsemicolon + 1, 
                                          thirdsemicolon - secondsemicolon - 1);
-        std::istringstream split(problem);
+        std::istringstream split(str);
         std::string token;
         while (std::getline(split, token, ','))
         {
@@ -52,6 +51,7 @@ LPSolution* Solver::solve(std::string& problem)
         }
     }
     /**
+    // Add each inequality constraint to the problem object.
     if (secondsemicolon > firstsemicolon + 1)
     {
        while ((nextcomma = problem.find(",", lastcomma + 1)) < secondsemicolon)
@@ -74,7 +74,8 @@ LPSolution* Solver::solve(std::string& problem)
            lastcomma = nextcomma;
        }
     }*/
+    LPSolution* sol = Simplex(lp).solve();
     delete lp;
-    return Simplex(lp).solve();
+    return sol;
 }
 

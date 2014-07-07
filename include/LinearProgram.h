@@ -27,7 +27,7 @@ class LinearProgram {
         void addEqConstraint(std::string eqConstraint);
         // example 5 4 3 9
         // meaning: 5x1 + 4x2 + 3x3 = 9
-        std::string getEquation();
+        std::string& getEquation();
         LinkedList<std::string>* getLeqConstraints();
         LinkedList<std::string>* getEqConstraints();
         // int ValidateFormat();

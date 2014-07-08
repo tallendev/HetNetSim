@@ -494,6 +494,11 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows,
                 displayMatrix(table, curRows, curCols);
             #endif
             // evaluate the final matrix for the values of each decision variable
+            double bvals[curRows];
+            for (int i = 0; i < curRows; i++)
+            {
+                bvals[i] = table[i][curCols - 1];
+            }
             for (int col = 0; col < numDecisionVars; col++)
             {
                 bool foundOne = false; // found a 1 in this column
@@ -518,9 +523,9 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows,
 
                 if (foundOne && !foundNonZero)
                 {
-                    optimalValues[col] = table[solutionRow][curCols - 1];
+                    optimalValues[col] = bvals[solutionRow];  // table[solutionRow][curCols - 1];
                     //fixes reusing B-values... maybe
-                    table[solutionRow][curCols - 1] = 0; 
+                    bvals[solutionRow] = 0; 
                 }
             }
 

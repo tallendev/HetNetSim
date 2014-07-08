@@ -1,5 +1,18 @@
-<?php
-?>
+<!--<?php
+switch($_SERVER['REQUEST_METHOD'])
+{
+    case 'POST':
+        $str = $_POST['problem'];
+        error_log($str, 0);
+        $a = cppMain($str);
+        error_log($a, 0); 
+        $response = array();
+        $response['success'] = true;
+        $response['posted'] = $a;
+        echo json_encode($response);
+        break;
+}
+?>-->
 
 <!DOCTYPE html>
 <html>
@@ -8,25 +21,16 @@
   <title>HetNetSim Alpha Test</title>
 </head>
 <body>
-<h1>Optimization Equations</h1>
-  <p>Objective Equation <input type="text" id="objeqn" size="30"/></p>
-  <p>Inequality 1 <input type="text" id="ineq1" size="30" /></p>
-  <p>Inequality 2 <input type="text" id="ineq2" size="30" /></p>
-  <p>Inequality 3 <input type="text" id="ineq3" size="30" /></p>
-  <p><button type="button" id="postmessage">Submit</button></p>
-  <div id="Output">
-  <!-- print the results here -->
-  <?php
-    switch($_SERVER['REQUEST_METHOD'])
-    {
-        case 'POST':
-            $str = $_POST["message"];
-            error_log($str, 0);
-            $a = cppMain($str);
-            error_log($a, 0); 
-            break;
-    }
-  ?>
+<h1>Linear Program Solver</h1>
+  <p><h2>Problem: </h2></p>
+  <p>Format: "objeqn;ineq,ineq,;eq,eq,;"</p>
+  <form method="post" name="problemForm">
+  <p><input type="text" id="problem" size="80"/></p>
+  <p><input type="submit" value="Solve"/></p>
+  </form>
+  <div id="result">
+  <h2>Solution:</h2>
+  <!-- answer here -->
   </div>
   <script type="text/javascript" 
    src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">

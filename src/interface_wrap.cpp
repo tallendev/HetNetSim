@@ -1124,7 +1124,7 @@ std::string cppMain(std::string problem)
     std::ostringstream s;
     if (answer->getErrorCode() == 0) {
         double* answervals = answer->getOptimalValues();
-        s << "z value: " << answer->getZValue() << "\n" << "answer values: " <<
+        s << "z value: " << answer->getZValue() << "<br />" << "answer values: " <<
               answervals[0] << " " << answervals[1] << " " << answervals[2] <<
               "\n";
     }

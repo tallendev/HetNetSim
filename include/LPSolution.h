@@ -23,6 +23,7 @@ class LPSolution {
          */
         int errorCode;
         double* optimalValues; // the optimal values for the decision variables
+        int numOptimalValues; // the size of optimalValues
         double zValue; // optimal value of the objective equation
     public:
         static const int SOLVED = 0;
@@ -37,6 +38,8 @@ class LPSolution {
         void setErrorCode(int code);
         void setOptimalValues(double* optimalValues);
         double* getOptimalValues();
+        int getNumOptimalValues();
+        void setNumOptimalValues(int numOptimalValues);
         void setZValue(double zValue);
         double getZValue();
 

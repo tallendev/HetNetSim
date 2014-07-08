@@ -10,10 +10,9 @@
 
 /**
  * Constructor for LPSolution class.
- * errorCode 50 means the solution was never found.
- * allocate memory for the answer.
  */
-LPSolution::LPSolution() : errorCode(100)
+LPSolution::LPSolution() : errorCode(100), optimalValues(0), 
+                           numOptimalValues(0), zValue(0)
 {
 }
 
@@ -27,7 +26,7 @@ LPSolution::~LPSolution()
 }
 
 /**
- * GetErrorCode method.
+ * getErrorCode method.
  * This should be called whenever you recieve a solution to check
  * for errors (unbounded, infeasible, etc)
  */
@@ -37,7 +36,7 @@ int LPSolution::getErrorCode()
 }
 
 /**
- * SetErrorCode method.
+ * setErrorCode method.
  * This is used in the Solver to indicate to the caller if the solution is valid.
  * A value of 0 means success.
  */
@@ -47,7 +46,7 @@ void LPSolution::setErrorCode(int code)
 }
 
 /**
- * SetOptimalValues method.
+ * setOptimalValues method.
  * This is used by the Solver to save an array of floats
  * that are the optimal values for the decision variables.
  */
@@ -57,13 +56,33 @@ void LPSolution::setOptimalValues(double* inOptimalValues)
 }
 
 /**
- * GetOptimalValues method.
+ * getOptimalValues method.
  * You should call this if the error code is 0 and you want the
  * optimal values for the decision variables.
  */
 double* LPSolution::getOptimalValues()
 {
     return optimalValues;
+}
+
+/**
+ * getNumOptimalValues method.
+ * Returns the size of the optimalValues array, which is
+ * the number of decision variables.
+ */
+int LPSolution::getNumOptimalValues()
+{
+    return numOptimalValues;
+}
+
+/**
+ * setNumOptimalValues method.
+ * This sets the numOptimalValues variable, which is used to 
+ * keep track of the size of the optimalValues array.
+ */
+void LPSolution::setNumOptimalValues(int inNumOpt)
+{
+    numOptimalValues = inNumOpt;
 }
 
 /**

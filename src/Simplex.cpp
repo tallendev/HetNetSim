@@ -467,7 +467,7 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows,
                       int curCols, int constraintRows)
 {
     double* optimalValues = new double[numDecisionVars]();
-
+    sol->setNumOptimalValues(numDecisionVars);
     unsigned long long maxIter = choose(curCols, curRows);
     unsigned long long numIter = 0; // number of iterations completed.
     bool stay = true;

@@ -2,7 +2,7 @@ CC=g++-4.8
 ifeq (clang, $(firstword $(MAKECMDGOALS)))
 	CC=clang
 endif
-CFLAGS= -Wall -Wextra -Wconversion -std=gnu++11
+CFLAGS= -Wall -Wextra -Wno-unused-label -Wno-literal-suffix -Wno-unused-function -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -std=gnu++11
 DEBUG= -g -DSERVER_DEBUG
 CPPEXT=cpp
 HEXT=h
@@ -23,7 +23,7 @@ HEADERDIR=include
 
 INCLUDE=-I./$(HEADERDIR)
 
-SOURCES=$(SRCDIR)/*.cpp
+SOURCES=$(shell ls src/*.cpp)
 TEST_SOURCES=src/$(shell find src/ -type f ! -iname '$(SWIGCPP)')
 OBJECTS=$(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(CPPEXT)=.$(OBJEXT)))
 TEST_OBJECTS=$(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(TEST_SOURCES:.$(CPPEXT)=.$(OBJEXT)))
@@ -39,11 +39,11 @@ clang: $(SWIGCPP) $(OBJECTS) $(HEADERS)
 test: $(TEST_SOURCES) $(TESTFILE) $(TEST_OBJECTS)
 	$(CC) $(TEST_SOURCES) $(TEST_FILE) $(INCLUDE) $(CFLAGS) -o $(TEST_TARGET)
 
-$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR/%.$(CPPEXT)
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(CPPEXT)
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(BIN)
 	@mkdir -p $(LIB)
-	-$(CC) $(INCLUDE) -c $(CFLAGS) $(DEBUG) $< -o $@
+	-$(CC) $(INCLUDE) $(shell php-config --includes) -c $(CFLAGS) $(DEBUG) $< -o $@
 
 install:
 	#@cp www/* /var/www/

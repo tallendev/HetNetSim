@@ -519,6 +519,8 @@ void Simplex::optimize(double** table, LPSolution* sol, int curRows,
                 if (foundOne && !foundNonZero)
                 {
                     optimalValues[col] = table[solutionRow][curCols - 1];
+                    //fixes reusing B-values... maybe
+                    table[solutionRow][curCols - 1] = 0; 
                 }
             }
 

@@ -8,7 +8,7 @@ switch($_SERVER['REQUEST_METHOD'])
         error_log($a, 0); 
         $response = array();
         $response['success'] = true;
-        $response['posted'] = $a;
+        $response['answer'] = $a;
         echo json_encode($response);
         break;
 }

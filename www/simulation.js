@@ -41,15 +41,14 @@ function main()
                            .style("stroke-width", border);
 
     buttonFuncs = {'circle' : genCircle, 
-                   'triangle' : genTriangle}//, 
-                   //'resize' : setResizable};
+                   'triangle' : genTriangle}
     colorArray = ["red", "green", "blue"];
     color = colorArray[0];
     shape = "circle";
-    $('input[value="add"]').prop('checked', true);
-    modeChange();
+    $('input[value="Add"]').prop('checked', true);
     $('input[value="circle"]').prop('checked', true);
     $('input[value="red"]').prop('checked', true);
+    changeMode();
 
     deviceID = 0;
     networkID = 0;
@@ -97,108 +96,102 @@ function genTriangle(svg, xCoord, yCoord, size, newColor)
               });
 }
 
-function modeAdd(on)
+function modeAdd()
 {
-    if (on)
+    $('#shape').show();
+    $('#color').show();
+    canvas.on("click", function()
     {
-        $('#shape').show();
-        $('#color').show();
-        canvas.on("click", function()
+        drawFunc = buttonFuncs[shape];
+        if (drawFunc != null)
         {
-            drawFunc = buttonFuncs[shape];
-            if (drawFunc != null)
-            {
-                drawFunc(canvas, d3.mouse(this)[0], 
-                                 d3.mouse(this)[1], 50, color);
-            }
-        });
-    }
-    else
-    {
-        $('#shape').hide();
-        $('#color').hide();
-        canvas.on("click", null);
-    }
+            drawFunc(canvas, d3.mouse(this)[0], 
+                             d3.mouse(this)[1], 50, color);
+        }
+    });
 }
 
-function modeResize(on)
+function modeResize()
 {
-    if (on)
-        d3.selectAll("circle").call(d3.behavior.drag().on("drag", resize));
-    else
-        d3.selectAll("circle").call(d3.behavior.drag().on("drag", null));
+    d3.selectAll("circle").call(d3.behavior.drag().on("drag", resize));
 }
 
-function modeMove(on)
+function modeMove()
 {
-    if (on)
-    {
-        d3.selectAll("circle").call(d3.behavior.drag()
-                                               .origin(circleOrigin)
-                                               .on("drag", dragCircle));
-        d3.selectAll("path").call(d3.behavior.drag()
-                                             .on("drag", dragPath));
-    }
-    else
-    {
-        d3.selectAll("circle").call(d3.behavior.drag().on("drag", null));
-        d3.selectAll("path").call(d3.behavior.drag().on("drag", null));
-    }
+    d3.selectAll("circle").call(d3.behavior.drag()
+                                           .origin(circleOrigin)
+                                           .on("drag", dragCircle));
+    d3.selectAll("path").call(d3.behavior.drag()
+                                         .on("drag", dragPath));
 }
 
-function modeDelete(on)
+function modeDelete()
 {
-    if (on)
-    {
-        d3.selectAll("circle").on("click", deleteItem);
-        d3.selectAll("path").on("click", deleteItem);
-    }
-    else
-    {
-        d3.selectAll("circle").on("click", null);
-        d3.selectAll("path").on("click", null);
-    }
+    d3.selectAll("circle").on("click", deleteItem);
+    d3.selectAll("path").on("click", deleteItem);
 }
 
-function modeChange()
+function modeFilter()
+{
+    $('#shape').show();
+    console.log($('input[value=triangle]:checked'));
+    if (!$('input[value=triangle]:checked'))
+    {
+        $('#color').show();
+    }
+    updateFilter();
+}
+
+
+function changeMode()
 {
     mode = $('input[name=mode]:checked').val();
 
-    if (mode === "add") 
-        modeAdd(true);
-    else 
-        modeAdd(false);
+    $('#shape').hide();
+    $('#color').hide();
+    showAll();
+    removeBehaviors();
 
-    if (mode === "resize") 
-        modeResize(true);
-    else if (mode === "move")
-        modeMove(true);
-    else 
-        modeMove(false);
+    // possibly replace with a switch?
+    switch (mode)
+    {
+        case "Add":
+            modeAdd();
+            break;
 
-    if (mode === "delete")
-        modeDelete(true);
-    else
-        modeDelete(false);
+        case "Resize":
+            modeResize();
+            break;
 
-    /*if (mode === "filter")
-        modeFilter(true);
-    else
-        modeFilter(false);*/
+        case "Move":
+            modeMove();
+            break;
+
+        case "Delete":
+            modeDelete();
+            break;
+
+        case "Filter":
+            modeFilter();
+            break;
+    }
 }
 
-function shapeChange()
+function changeShape()
 {
     shape = $('input[name=shape]:checked').val();
-    if (shape === "circle")
+    if (shape === "circle") //|| mode === "Filter")
         $('#color').show();
     else
         $('#color').hide();
+    updateFilter();
 }
 
-function colorChange()
+function changeColor()
 {
     color = $('input[name=color]:checked').val();
+    console.log(color);
+    updateFilter();
 }
 
 function resize()
@@ -234,6 +227,37 @@ function dragPath()
 function deleteItem()
 {
     d3.select(this).remove();
+}
+
+function updateFilter()
+{
+    console.log("updateFilter()");
+    showAll();
+    if (mode === "Filter")
+    {
+        d3.selectAll("circle").filter( function()
+        {
+            var currentColor = d3.rgb(d3.select(this).style("fill")).toString();
+            console.log("filter: " + d3.rgb(color) + " current: " + currentColor);
+            if (currentColor != d3.rgb(color))
+                return d3.select(this);
+        }).style("visibility", "hidden");
+    }
+}
+
+function showAll()
+{
+    d3.selectAll("circle").style("visibility", "visible");
+    d3.selectAll("path").style("visibility", "visible");
+}
+
+function removeBehaviors()
+{
+    canvas.on("click", null);
+    d3.selectAll("circle").call(d3.behavior.drag().on("drag", null));
+    d3.selectAll("path").call(d3.behavior.drag().on("drag", null));
+    d3.selectAll("circle").on("click", null);
+    d3.selectAll("path").on("click", null);
 }
 
 $(document).ready(function() {

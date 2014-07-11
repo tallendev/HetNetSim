@@ -261,6 +261,8 @@ function removeBehaviors()
 }
 
 $(document).ready(function() {
+    $('#simple-menu').sidr();
+
     $('form').submit(function(event)
     {
         $('#result').empty();

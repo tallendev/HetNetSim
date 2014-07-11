@@ -135,7 +135,7 @@ function modeFilter()
 {
     $('#shape').show();
     console.log($('input[value=triangle]:checked'));
-    if (!$('input[value=triangle]:checked'))
+    if (!$('input[value=triangle]:checked').val())
     {
         $('#color').show();
     }

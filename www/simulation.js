@@ -80,7 +80,7 @@ function genCircle(svg, cx, cy, radius, newColor)
           //exclusively in the final version, the dark colors probably aren't that
           //much easier to see.
           .attr("opacity", .5)
-          .style("fill", theColor)
+          .style("fill", theColor);
 }
 
 function genTriangle(svg, xCoord, yCoord, size, newColor)

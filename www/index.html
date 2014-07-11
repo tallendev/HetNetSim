@@ -7,17 +7,27 @@
 </head>
 <body>
     <h1>HetNetSim Beta Test</h1>
-    <form>
-        <input type="radio" name="shape" onclick='shapeChange()' value="circle">Circle
-        <input type="radio" name="shape" onclick='shapeChange()' value="triangle">Triangle
-        <input type="radio" name="shape" onclick='shapeChange()' value="resize">Resize <br>
+    <div id="settings">
+    <form id="mode">
+        <input type="radio" name="mode" onclick='modeChange()' value="add">Add
+        <input type="radio" name="mode" onclick='modeChange()' value="resize">Resize
+        <input type="radio" name="mode" onclick='modeChange()' value="move">Move 
+        <input type="radio" name="mode" onclick='modeChange()' value="delete">Delete
+        <input type="radio" name="mode" onclick='modeChange()' value="filter">Filter<br> 
     </form>
-
+    <form id="shape">
+        <input type="radio" name="shape" onclick='shapeChange()' value="circle">Network
+        <input type="radio" name="shape" onclick='shapeChange()' value="triangle">Device<br>
+    </form>
     <form id="color">
         <input type="radio" name="color" onclick='colorChange()' value="red">red
         <input type="radio" name="color" onclick='colorChange()' value="green">green
         <input type="radio" name="color" onclick='colorChange()' value="blue">blue
     </form>
+    </div>
+    <br>
+    <div id="simulation"></div>
+    <div id="info"></div>
     <script type="text/javascript" 
     src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
     </script>

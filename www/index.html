@@ -2,37 +2,187 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="css/jquery.sidr.light.css">
+  <link rel="stylesheet" type="text/css" href="css/holo.css">
+  <link rel="stylesheet" type="text/css" href="css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+<!--  <link rel="stylesheet" type="text/css" href="holo-base-elements.css">
+  <link rel="stylesheet" type="text/css" href="holo-base-widgets.css">
+  <link rel="stylesheet" type="text/css" href="holo-kk-light-elements.css">
+  <link rel="stylesheet" type="text/css" href="holo-kk-light-widgets.css">-->
   <title>HetNetSim Beta Test</title>
-</head>
-<body>
-    <h1>HetNetSim Beta Test</h1>
-    <div id="settings">
-    <form id="mode">
-        <input type="radio" name="mode" onclick='changeMode()' value="Add">Add
-        <input type="radio" name="mode" onclick='changeMode()' value="Resize">Resize
-        <input type="radio" name="mode" onclick='changeMode()' value="Move">Move 
-        <input type="radio" name="mode" onclick='changeMode()' value="Delete">Delete
-        <input type="radio" name="mode" onclick='changeMode()' value="Filter">Filter<br> 
-    </form>
-    <form id="shape">
-        <input type="radio" name="shape" onclick='changeShape()' value="circle">Network
-        <input type="radio" name="shape" onclick='changeShape()' value="triangle">Device<br>
-    </form>
-    <form id="color">
-        <input type="radio" name="color" onclick='changeColor()' value="red">red
-        <input type="radio" name="color" onclick='changeColor()' value="green">green
-        <input type="radio" name="color" onclick='changeColor()' value="blue">blue
-    </form>
-    </div>
-    <br>
+</head> 
+<body class="holo holo-light holo-accent-blue">
     <div id="simulation"></div>
+    <div id="sidr" class="sidr left" style="display: block; left: 0px;">
+    <div class="sidr-inner">
+    <div class="holo-content">
+
+        <div id="mode">
+        <h2 id="hmode" class="holo-divider">MODE</h2>
+        <ul class="holo-list">
+            <li>
+            <div class=holo-radio>
+                <input id="mode1" type="radio" name="mode" onclick='changeMode()' value="Add">
+                <label class="holo-label" for="mode1">
+                    Add
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class=holo-radio>
+                <input id="mode2" type="radio" name="mode" onclick='changeMode()' value="Resize">
+                <label class="holo-label" for="mode2">
+                    Resize Network
+                </label>
+            </div>
+            </li>
+            
+            <li>
+            <div class=holo-radio>
+                <input id="mode3" type="radio" name="mode" onclick='changeMode()' value="Move">
+                <label class="holo-label" for="mode3">
+                    Move
+                </label>
+            </div>
+            </li>
+            
+            <li>
+            <div class=holo-radio>
+                <input id="mode4" type="radio" name="mode" onclick='changeMode()' value="Delete">
+                <label class="holo-label" for="mode4">
+                    Delete
+                </label>
+            </div>
+            </li>
+            
+            <li>
+            <div class=holo-radio>
+                <input id="mode5" type="radio" name="mode" onclick='changeMode()' value="Filter">
+                <label class="holo-label" for="mode5">
+                    Filter Networks
+                </label>
+            </div>
+            </li>
+        </ul> 
+        </div>
+
+        <div id="shape">
+        <h2 class="holo-divider">TYPE</h2>
+        <ul class="holo-list">
+            <li>
+            <div class=holo-radio>
+                <input id="devices1" type="radio" name="shape" onclick='changeShape()' value="circle">
+                <label class="holo-label" for="devices1">
+                    Network
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class=holo-radio>
+                <input id="devices2" type="radio" name="shape" onclick='changeShape()' value="triangle">
+                <label class="holo-label" for="devices2">
+                    Devices
+                </label>
+            </div>
+            </li>
+        </ul>
+        </div>
+
+        <div id="color">
+        <h2 class="holo-divider">RADIO TYPE</h2>
+        <ul class="holo-list">
+            <li>
+            <div class=holo-radio>
+                <input id="color1" type="radio" name="color" onclick='changeColor()' value="red">
+                <label class="holo-label" for="color1">
+                    Red
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class=holo-radio>
+                <input id="color2" type="radio" name="color" onclick='changeColor()' value="green">
+                <label class="holo-label" for="color2">
+                    Green
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class=holo-radio>
+                <input id="color3" type="radio" name="color" onclick='changeColor()' value="blue">
+                <label class="holo-label" for="color3">
+                    Blue
+                </label>
+            </div>
+            </li>
+        </ul>
+        </div>
+
+        <div id="filters">
+        <h2 class="holo-divider">FILTERS</h2>
+        <ul class="holo-list">
+            <li>
+            <div class="holo-switch">
+                <input id="switch1" type="checkbox" name="filters" onclick='updateFilter()' value="networks" checked>
+                <label class="holo-label" for="switch1">
+                    Networks
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class="holo-switch">
+                <input id="switch2" type="checkbox" name="filters" onclick='updateFilter()' value="devices" checked>
+                <label class="holo-label" for="switch2">
+                    Devices
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class="holo-switch">
+                <input id="switch3" type="checkbox" name="filters" onclick='updateFilter()' value="Red" checked>
+                <label class="holo-label" for="switch3">
+                    Red
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class="holo-switch">
+                <input id="switch4" type="checkbox" name="filters" onclick='updateFilter()' value="green" checked>
+                <label class="holo-label" for="switch4">
+                    Green
+                </label>
+            </div>
+            </li>
+
+            <li>
+            <div class="holo-switch">
+                <input id="switch5" type="checkbox" name="filters" onclick='updateFilter()' value="blue" checked>
+                <label class="holo-label" for="switch5">
+                    Blue
+                </label>
+            </div>
+            </li>
+        </ul>
+        </div>
+
+    </div>
+    </div>
+    </div>
     <div id="info"></div>
     <script type="text/javascript" 
     src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
     </script>
     <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-    <script type="text/javascript" src="simulation.js"></script>
+    <script type="text/javascript" src="js/jquery.sidr.min.js"></script>
+    <script type="text/javascript" src="js/simulation.js"></script>
+    <script type="text/javascript" src="js/holo-touch.js"></script>
 </body>
 </html>
-

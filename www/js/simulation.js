@@ -2,12 +2,18 @@
  *
  */
 
+// macro level variables
 var backgroundColor;
-
 var canvas;
 var borderPath;
-var info;
+var w;
+var h;
+var x;
+var y;
+var xAxis;
+var yAxis;
 
+// micro level variables
 var buttonFuncs;
 var colorArray;
 var color;
@@ -19,16 +25,24 @@ var switchID;
 var currentColor;
 var filterColor;
 
-var TRANSITION_DURATION = 500;
-var OPACITY_LEVEL = 0.5;
-var DEVICES_COLOR = "gray";
-var BORDER_WIDTH = 5;
-var BORDER_COLOR = "gray";
+// constants
+var TRANSITION_DURATION = 500; // number of milliseconds elements will take to
+                               // fade in or out.
+var OPACITY_LEVEL = 0.5;       // full opacity level
+var DEVICES_COLOR = "gray";  
+var BORDER_WIDTH = 5;         
+var BORDER_COLOR = "gray";    
+var GRIDLINE_GRANULARITY = 20; // determines fine/coarse gridlines
 
+
+/*
+ * The main function sets up the canvas, its border and axes,
+ * and the default choices in the side menu.
+ */
 function main()
 {
-    var w = $("body").width() * .7;
-    var h = $("body").height();
+    w = $("body").width() - 260; // 260px is the width of the sidebar
+    h = $("body").height();
 
     canvas = d3.select("#simulation")
                .append("svg")
@@ -66,9 +80,38 @@ function main()
                           ", " + d3.mouse(this)[1].toFixed() + ")</p>");
     });
 
+    x = d3.scale.linear().range([0, w]);
+    y = d3.scale.linear().range([h, 0]); 
+    xAxis = d3.svg.axis().scale(x).orient("bottom")
+                                  .ticks(w / GRIDLINE_GRANULARITY)
+                                  .tickSize(-h,0,0)
+                                  .tickFormat("");
+    yAxis = d3.svg.axis().scale(y).orient("left")
+                                  .ticks(h / GRIDLINE_GRANULARITY)
+                                  .tickSize(-w,0,0)
+                                  .tickFormat("");
+    drawAxes();
 }
 
 
+/*
+ * The drawAxes function appends the x and y axes to the canvas
+ * and translates the x axis so it starts in the bottom left instead 
+ * of the top left.
+ */
+function drawAxes() {
+    canvas.append("g").attr("class", "grid")
+                      .attr("transform", "translate(0," + h + ")")
+                      .call(xAxis);
+    canvas.append("g").attr("class", "grid")
+                      .call(yAxis);
+}
+
+
+/*
+ * The genCircle function can be called to generate new circle elements.
+ * It takes in the svg, location, radius, and color.
+ */    
 function genCircle(svg, cx, cy, radius, newColor)
 {
     var theColor = d3.rgb(newColor);
@@ -84,6 +127,13 @@ function genCircle(svg, cx, cy, radius, newColor)
           .style("fill", theColor);
 }
 
+
+/* 
+ * The genTriangle function generates triangles using paths.
+ * It ignores the color parameter which is there for consistency with
+ * genCircle so either can be called with one statement. The triangle has to
+ * be translated to the appropriate place because symbols start at the origin.
+ */
 function genTriangle(svg, xCoord, yCoord, size, newColor)
 {
     deviceID++;
@@ -98,6 +148,11 @@ function genTriangle(svg, xCoord, yCoord, size, newColor)
               });
 }
 
+
+/*
+ * modeAdd enables the add functionality on the canvas and
+ * shows the shape and color options to the user.
+ */
 function modeAdd()
 {
     $('#shape').show();
@@ -113,11 +168,23 @@ function modeAdd()
     });
 }
 
+
+/*
+ * modeResize enables resizing functionality by calling the
+ * resize function when a circle is dragged.
+ */
 function modeResize()
 {
     d3.selectAll("circle").call(d3.behavior.drag().on("drag", resize));
 }
 
+
+/*
+ * modeMove allows users to move shapes by changing the drag behavior. 
+ * For circles, the origin is set as the location of the circle at
+ * the start of the drag so x and y coordinates are relative to that, which
+ * makes the motion smoother.
+ */
 function modeMove()
 {
     d3.selectAll("circle").call(d3.behavior.drag()
@@ -127,18 +194,40 @@ function modeMove()
                                          .on("drag", dragPath));
 }
 
+
+/*
+ * modeDelete lets users delete elements making use of d3's remove function.
+ */
 function modeDelete()
 {
-    d3.selectAll("circle").on("click", deleteItem);
-    d3.selectAll("path").on("click", deleteItem);
+    d3.selectAll("circle").on("click", function()
+                              {
+                                  d3.select(this).remove();
+                              });
+    d3.selectAll("path").on("click", function()
+                              {
+                                  d3.select(this).remove();
+                              });
 }
 
+
+/*
+ * modeFilter shows the switchs that let the user change the parameters
+ * of the filter and calls updateFilter, which makes the canvas reflect those
+ * selections.
+ */
 function modeFilter()
 {
     $('#filters').show();
     updateFilter();
 }
 
+
+/*
+ * changeMode is called whenever the user clicks on a mode, and once when
+ * the page loads. It removes all behaviors on the canvas and enables 
+ * appropriate ones using the functions above.
+ */
 function changeMode()
 {
     mode = $('input[name=mode]:checked').val();
@@ -169,6 +258,11 @@ function changeMode()
     }
 }
 
+
+/*
+ * changeShape is called when the user selects a shape. It updates the 
+ * global shape variable and decides whether to show the color options.
+ */
 function changeShape()
 {
     shape = $('input[name=shape]:checked').val();
@@ -178,34 +272,59 @@ function changeShape()
         $('#color').hide();
 }
 
+
+/*
+ * changeColor is called when the user selects a color, and updates the 
+ * global color variable.
+ */
 function changeColor()
 {
     color = $('input[name=color]:checked').val();
-    console.log(color);
 }
 
+
+/*
+ * resize uses the pythagorean theorem to calculate the cursor's distance 
+ * from the center of the circle, and changes the radius appropriately.
+ */
 function resize()
 {
     var thisCircle = d3.select(this);
     var mouse = d3.mouse(this);
-    var newRadius = Math.sqrt( // pythagorean theorem 
+    var newRadius = Math.sqrt(
                     Math.pow(Math.abs(thisCircle.attr("cx") - mouse[0]), 2) +
                     Math.pow(Math.abs(thisCircle.attr("cy") - mouse[1]), 2));
     thisCircle.attr("r", newRadius);
 }
 
+
+/*
+ * Drag behaviors can only give x and y coordinates relative to an origin if 
+ * that origin object has x and y attributes, so this function is necessary 
+ * to bridge that gap.
+ */
 function circleOrigin()
 {
     return { x: d3.select(this).attr("cx"),
              y: d3.select(this).attr("cy") };
 }
 
+
+/* 
+ * dragCircle changes the selected circle's position based on the drag event's
+ * coordinates, which are offsets based on its original position.
+ */
 function dragCircle()
 {
     d3.select(this).attr("cx", d3.event.x)
                    .attr("cy", d3.event.y);
 }
 
+
+/*
+ * dragPath is used to move paths (triangles in this case), using the 
+ * transform attribute.
+ */
 function dragPath()
 {
     d3.select(this).attr("transform", function()
@@ -214,11 +333,16 @@ function dragPath()
     });
 }
 
-function deleteItem()
-{
-    d3.select(this).remove();
-}
 
+/*
+ * updateFilter makes all elements visible, and if the mode is set to filter,
+ * it selectively hides appropriate elements. To make it smooth, the opacity
+ * is transitioned to 0 over a short duration, and then the visibility is
+ * set to hidden, which ensures that click or drag events cannot occur.
+ * To hide the correct colors and stay "scalable", it iterates over the
+ * colorArray, and assumes a switch has been defined for each in the HTML
+ * after the network and devices switches.
+ */
 function updateFilter()
 {
     console.log("updateFilter()");
@@ -257,10 +381,15 @@ function updateFilter()
                   .style("opacity", 0)
                   .duration(TRANSITION_DURATION);
             }
-        }                                                               
-    }
+        }                                
+    } 
 }
 
+
+/*
+ * showAll smoothly transitions all elements to full opacity/color 
+ * to make them visible.
+ */
 function showAll()
 {
     d3.selectAll("circle").transition()
@@ -272,6 +401,11 @@ function showAll()
                         .duration(TRANSITION_DURATION);
 }
 
+
+/*
+ * removeBehaviors removes all click and drag behaviors from the canvas
+ * and elements to ensure that none persist into the wrong mode.
+ */
 function removeBehaviors()
 {
     canvas.on("click", null);
@@ -285,7 +419,7 @@ $(document).ready(function() {
     $('#simple-menu').sidr(side="left");
     jQuery.sidr(method="open")
 
-    $('form').submit(function(event)
+    /*$('form').submit(function(event)
     {
         $('#result').empty();
         $.ajax({
@@ -302,7 +436,7 @@ $(document).ready(function() {
             }
         });
         event.preventDefault();
-    });
+    });*/
 });
 
 main();

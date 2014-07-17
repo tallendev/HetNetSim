@@ -2,7 +2,7 @@
  *
  */
 
-// macro level variables
+// document level variables
 var backgroundColor;
 var canvas;
 var borderPath;
@@ -13,7 +13,7 @@ var y;
 var xAxis;
 var yAxis;
 
-// micro level variables
+// simulation level variables
 var buttonFuncs;
 var colorArray;
 var color;
@@ -24,6 +24,9 @@ var networkID;
 var switchID;
 var currentColor;
 var filterColor;
+var maxRates;
+var instructions;
+var textBox;
 
 // constants
 var TRANSITION_DURATION = 500; // number of milliseconds elements will take to
@@ -49,19 +52,31 @@ function main()
                .attr("width", w)
                .attr("height", h);    
 
-    borderPath = canvas.append("rect")
-                           .attr("x", 0)
-                           .attr("y", 0)
-                           .attr("width", w)
-                           .attr("height", h)
-                           .style("stroke", BORDER_COLOR)
-                           .style("fill", "none")
-                           .style("stroke-width", BORDER_WIDTH);
+    canvas.append("g").attr("id", "layer1"); // to control ordering of elements
+    canvas.append("g").attr("id", "layer2");
+
+    textBox = canvas.select("#layer2")
+                    .append("text")
+                    .attr("x", w / 2)
+                    .attr("y", 40)
+                    .attr("fill", "darkgray")
+                    .attr("font-size", "medium")
+                    .attr("font-weight", "bold")
+                    .attr("text-anchor", "middle")
+                    .text("");
 
     buttonFuncs = {'circle' : genCircle, 
                    'triangle' : genTriangle}
     colorArray = ["red", "green", "blue"];
     color = colorArray[0];
+    maxRates = {"red": 0, "green": 0, "blue": 0};
+    instructions = {"Add"     : "Click anywhere to add a network or device.",
+                    "Resize"  : "Click and drag on any network to resize it.",
+                    "Move"    : "Click and drag on any network to move it.",
+                    "Delete"  : "Click on any network or device to delete it.",
+                    "Filter"  : "Filter networks and devices using the switches.",
+                    "Optimize": "Adjust the sliders to change the weights of optimization parameters."
+                   }
     shape = "circle";
     $('input[value="Add"]').prop('checked', true);
     $('input[value="circle"]').prop('checked', true);
@@ -91,8 +106,29 @@ function main()
                                   .tickSize(-w,0,0)
                                   .tickFormat("");
     drawAxes();
+
+    borderPath = canvas.select("#layer1")
+                       .append("rect")
+                       .attr("x", 0)
+                       .attr("y", 0)
+                       .attr("width", w)
+                       .attr("height", h)
+                       .style("stroke", BORDER_COLOR)
+                       .style("fill", "none")
+                       .style("stroke-width", BORDER_WIDTH);
+
 }
 
+/*
+ * distance uses the pythagorean theorem to calculate the magnitude of the 
+ * distance between two points.
+ */
+function distance(x1, y1, x2, y2)
+{
+    return Math.sqrt(
+           Math.pow(Math.abs(x2 - x1), 2) +
+           Math.pow(Math.abs(y2 - y1), 2));
+}
 
 /*
  * The drawAxes function appends the x and y axes to the canvas
@@ -100,13 +136,52 @@ function main()
  * of the top left.
  */
 function drawAxes() {
-    canvas.append("g").attr("class", "grid")
-                      .attr("transform", "translate(0," + h + ")")
-                      .call(xAxis);
-    canvas.append("g").attr("class", "grid")
-                      .call(yAxis);
+    canvas.select("#layer1").append("g")
+                            .attr("class", "grid")
+                            .attr("transform", "translate(0," + h + ")")
+                            .call(xAxis);
+    canvas.select("#layer1").append("g")
+                            .attr("class", "grid")
+                            .call(yAxis);
 }
 
+
+/*
+ * gatherData analyzes the simulation to collect the data needed for
+ * optimization. 
+ */ 
+function gatherData()
+{
+    var simData = {};
+    d3.selectAll("path").each( function()
+    {
+        console.log("this device: " + this);
+        var elementID = d3.select(this).attr("id");
+        console.log(elementID);
+        var deviceInfo = {};
+        var translation = d3.select(this).attr("transform");
+        console.log(translation);
+        var pathX = parseInt(translation.substr(translation.indexOf("("),
+                                                translation.indexOf(",")));
+        var pathY = parseInt(translation.substr(translation.indexOf(","),
+                                                translation.indexOf(")")));
+        d3.selectAll("circle").each( function()
+        {
+            var thisCircle = d3.select(this);
+            var distanceFromPoint = distance(pathX, pathY, 
+                                             thisCircle.attr("cx"),
+                                             thisCircle.attr("cy"));
+            if (distanceFromPoint < thisCircle.attr("r"))
+            {
+                deviceInfo.thisCircle.attr("id") = distanceFromPoint;
+            }
+        });
+
+        simData.elementID = deviceInfo;
+   });
+   console.log(simData);
+
+}
 
 /*
  * The genCircle function can be called to generate new circle elements.
@@ -116,6 +191,12 @@ function genCircle(svg, cx, cy, radius, newColor)
 {
     var theColor = d3.rgb(newColor);
     networkID++;
+    if (maxRates[newColor] == 0)
+    {
+        maxRates[newColor] = prompt("Please enter the maximum possible " 
+                                  + "bandwidth rate for this network type "
+                                  + "in bits/s:");
+    }
     svg.append("circle")
           .attr("id", "network" + networkID)
           .attr("cx", cx)
@@ -148,6 +229,23 @@ function genTriangle(svg, xCoord, yCoord, size, newColor)
               });
 }
 
+/*
+ * changeText transitions the opacity of the text box and changes its text
+ * based on the current mode.
+ */
+function changeText()
+{
+    textBox.style("opacity", 0);
+    textBox.text(instructions[mode])
+           .transition()
+           .style("opacity", 1)
+           .duration(TRANSITION_DURATION);
+    textBox.transition()
+           .style("opacity", 0)
+           .duration(TRANSITION_DURATION)
+           .delay(3000)
+           .text("");
+}
 
 /*
  * modeAdd enables the add functionality on the canvas and
@@ -222,6 +320,9 @@ function modeFilter()
     updateFilter();
 }
 
+function modeOptimize()
+{
+}
 
 /*
  * changeMode is called whenever the user clicks on a mode, and once when
@@ -231,7 +332,7 @@ function modeFilter()
 function changeMode()
 {
     mode = $('input[name=mode]:checked').val();
-
+    
     $('#shape').hide();
     $('#color').hide();
     $('#filters').hide();
@@ -255,7 +356,12 @@ function changeMode()
         case "Filter":
             modeFilter();
             break;
+        case "Optimize":
+            modeOptimize();
+            break;
     }
+
+    changeText();
 }
 
 
@@ -291,9 +397,10 @@ function resize()
 {
     var thisCircle = d3.select(this);
     var mouse = d3.mouse(this);
-    var newRadius = Math.sqrt(
-                    Math.pow(Math.abs(thisCircle.attr("cx") - mouse[0]), 2) +
-                    Math.pow(Math.abs(thisCircle.attr("cy") - mouse[1]), 2));
+    var newRadius = distance(thisCircle.attr("cx"),
+                             thisCircle.attr("cy"),
+                             mouse[0],
+                             mouse[1]);
     thisCircle.attr("r", newRadius);
 }
 
@@ -414,6 +521,7 @@ function removeBehaviors()
     d3.selectAll("circle").on("click", null);
     d3.selectAll("path").on("click", null);
 }
+
 
 $(document).ready(function() {
     $('#simple-menu').sidr(side="left");

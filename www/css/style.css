@@ -23,6 +23,8 @@ body {
 }
 
 .holo-divider {
+    margin: 0px 0px 6px !important;
+    height: 34px !important;
     font-weight: bold !important;
     font-size: medium !important;
     padding: 12px 10px 0 !important;
@@ -40,13 +42,16 @@ body {
     border-top: 0px none !important;
     border-bottom: 0px none !important;
 }
+
 .holo-list li {
     padding 0px 4px !important;
+    border-color: #EEE !important;
 }
 
 .holo-label {
-    margin-left: 12px;
-    margin-right: 5px;
+    padding-left: 24px;
+    padding-right: 24px;
+    margin: 0px 8px;
 }
 
 #simulation {

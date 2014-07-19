@@ -1,5 +1,5 @@
 \documentclass[11pt]{article}
-\usepackage{todonotes}
+
 \usepackage{fullpage}
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
@@ -15,7 +15,6 @@
 \maketitle
 
 {\setlength{\parindent}{0cm} \large \textbf{Abstract}}
-<<<<<<< Updated upstream:doc/DesignReview.tex
 
 While the Internet was originally designed for computers with stable connections 
 that rarely changed location, the number of mobile devices online has grown 
@@ -31,35 +30,14 @@ environment in order to further understanding of these systems, and potentially
 for use as an educational tool. This paper will give an overview of the theory 
 behind our project, and detail on the implementation that has been completed 
 thusfar.
-=======
-%
-While the Internet was \todo{First sentence is a bit subjective.} originally designed 
-for computers with stable connections that rarely changed location, the number of mobile devices online has grown 
-rapidly over the past few years. \todo[inline]{Text before "the landscape" is confusing, doesn't entirely make sense.} If access to the Internet were a single 
-homogeneous network, this would not pose an issue, but the landscape of 
-wireless access technologies has become more diverse, with WiFi, 3G/4G 
-cellular networks, and WiMax often overlapping. \todo[inline]{Don't start sentences with because} Because of this environment, 
-devices frequently have multiple options for how to connect to the Internet, 
-but not enough information to know which connection would maximize throughput 
-for them or for all devices competing for bandwidth. A 
-Global Resource Controller (GRC) which has knowledge of all devices' 
-bandwidth demands and connection options could allocate devices to networks in 
-an optimal way. More specifically, the GRC could be configured to attempt to 
-maximize the total throughput of all devices, to use a \todo[inline]{"Min-Max fair algorithm" Might be a bit specific for abstract} Max-Min Fair algorithm 
-that prevents well-connected devices from hogging bandwidth, or some other 
-configuration. \todo[inline]{Okay description of our goal, although a summary of the contents of the paper would be more apt}We seek to create a simulation of just such an environment in 
-order to further understanding of these systems, and for use as an 
-educational tool.
->>>>>>> Stashed changes:DesignReview.tex
 
 \section{Overview}
 \subsection{Modern Wireless Connectivity}
-~\indent A smart phone can be connected to a
+~\indent Modern Wireless Devices are self-serving. A smart phone can be connected to a
 4G network, a 3G network, an LTE network, a Wi-Max network, a WiFi network, 
 or any other type of network for which the device contains an appropriate 
-radio receiver. Modern wireless devices are self-serving; The device connects to network chosen by the owner
-rather than automatically selecting a network. 
-This is generally an easy choice for the owner; if the 4G network has a 
+radio receiver. The device itself connects to the network chosen by the user. 
+This is generally an easy choice for the user; if the 4G network has a 
 low signal strength, it is easy to switch to a local wireless network when one 
 is available. This seems effective from the perspective of the device owner, 
 but having every wireless device owner select their own network of preference 
@@ -127,58 +105,27 @@ multiple threads to generate the response.
 
 \section{Details on the Linear Programming Solver}
 
-<<<<<<< Updated upstream:doc/DesignReview.tex
 ~\indent Our Linear Programming solver uses the Two Phase 
 Simplex Method to solve any feasible, bounded optimization problem in standard form.
     \subsection{Input}
 ~\indent Our solver handles problems in the form:~\cite{chvatal83}
-=======
-~\indent Our Linear Program solver uses the Two Phase 
-Simplex Method \todo[inline]{citation really belongs with the content you took from the source, no need to cite the name of the algorithm}
-\cite{chvatal83} to solve any feasible, bounded optimization 
-problem in standard form, and \todo[inline]{Codebase complexity is subjective, not really our job to include opinions in this document}does so without too much complexity in the 
-codebase. \todo[inline]{We actually don't know about how we stack up. Shouldn't include this.} The trade-off for this is that the efficiency likely doesn't 
-compare to that of long-running commercially available and open source 
-projects of a similar nature.
-    \subsection{Input}
-~\indent Our solver handles problems in the form:
-\todo{Citations everywhere you use something from the book.}
->>>>>>> Stashed changes:DesignReview.tex
 \begin{eqnarray*}
 \mbox{maximize}& \sum\limits_{j=1}^n c_jx_j\\
 \mbox{subject to}& \sum\limits_{j=1}^n a_{ij}x_j \leq b_i\mbox{\ \ }(i \in I)\\
 & \sum\limits_{j=1}^n a_{ij}x_j = b_i\mbox{\ \ }(i \in E)
 \end{eqnarray*}
 
-~\indent Since minimization problems can be written as maximizations by negating each variable, 
-and similarly $\geq$ constraints can be negated to become $\leq$ ones, 
-our solver only accepts three types of data:
-\todo[inline]{have we actually tested with the edge cases? We can when it's back up and running}
+~\indent Since minimization problems can be written as maximizations by negating each variable, and similarly $\geq$ constraints can be negated to become $\leq$ ones, our solver only accepts three types of data:
 \begin{enumerate}
 \item precisely one objective equation with one or more decision variables (in its maximization form)
 \item zero or more inequality constraints (in the $\leq$ form)
 \item zero or more equality constraints
 \end{enumerate}
-\todo[inline]{May be better to just state formally what a bounded problem is before giving the list.}
 ...given that there is at least one constraint of some kind (otherwise the problem is unbounded).\\
-<<<<<<< Updated upstream:doc/DesignReview.tex
 
 \subsection{Algorithm}
 \textbf{Phase I}\\
 ~\indent If $$E = \emptyset  \land  \forall i \in I, b_i \geq 0$$ Phase I is skipped and the standard Simplex algorithm is applied.~\cite{wolfram} Otherwise, an auxiliary problem is formed to test the feasibility of the original problem. Namely,~\cite{wolfram}
-=======
-\todo[inline]{The meaning of this would not be clear to someone unfamiliar with the codebase. It's also not 
-the true reason for assuming it's formatted correctly. The Linear Program class should actually 
-be checking that, we just haven't implemented it. Not worth mentioning either way}The solver assumes the input to it is formatted correctly since that is handled on the server-side.
-
-\subsection{Algorithm}
-\textbf{Phase I}\\
-~\indent If there are no equality constraints and all inequality constraints 
-have positive b-values (they are $\leq$ not $\geq$), Phase I is skipped and 
-the standard Simplex algorithm is applied. 
-Otherwise, an auxiliary problem is formed to test the feasibility of the original problem:
-\todo[noline]{Citations everywhere you use something from the book.}
->>>>>>> Stashed changes:DesignReview.tex
 \begin{eqnarray*}
 \mbox{maximize}& \sum\limits_{i=1}^m (-x_{n+i})\\
 \mbox{subject to}& \sum\limits_{j=1}^n a_{ij}x_j + w_ix_{n+i} \leq b_i\mbox{\ \ }(i \in I)\\
@@ -199,7 +146,7 @@ given that $w_i = 1$ whenever $b_i \geq 0$ and $w_i = -1$ whenever $b_i < 0$~\ci
   \end{enumerate}
 \item If the related problem's optimal value is 0, the original problem is solvable and the optimal solution to the auxilary problem provides a Basic Feasible Solution for the original.~\cite{chvatal83} Transfer the first $m$ rows and $n+m$ columns of the auxilary problem's table to the original table, as well as the objective equation's row.
 \end{enumerate}
-\todo[noline]{If any of this is directly taken from the book it needs to be quoted and cited.}
+
 \noindent \textbf{Phase II}\\
 Given that Phase I indicated the problem is solvable, start from the Basic Feasible Solution (BFS) given by Phase I and implement the standard simplex method to optimize it, looping through the following steps:
 \begin{enumerate}
@@ -217,11 +164,7 @@ If a solution was found, all decision variables are assumed to have the value 0 
 
 \section{Future Work}
 
-~\indent In the near-term future, we are going to implement a web interface for 
-the heterogeneous network simulator, which will allow the user to specify 
-parameters and visualize the system's allocations. In the long term, 
-the project may be extended to a larger problem domain such as multiple 
-allocation algorithms, or a front-end for simulating the DOCSIS protocol.
+~\indent In the near-term future, we are going to implement a web interface for the heterogeneous network simulator, which will allow the user to specify parameters and visualize the system's allocations. Longer-term, the project may be extended to a larger problem domain. For example, more allocation algorithms could be added.
 
 \begin{thebibliography}{9}
 \bibitem{swig}

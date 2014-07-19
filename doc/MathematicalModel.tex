@@ -1,0 +1,92 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{setspace}
+\doublespacing
+\usepackage{fullpage}
+
+\title{HetNet Simulator: Overview of Basic Mathematical Model}
+\author{Matthew Leeds\\
+		Tyler Allen\\}
+\date{\today}
+
+\begin{document}
+\maketitle
+This document serves to explain the assumptions and mathematical structure of the model being used in our HetNet Simulator in order to optimize it. It is based on the model used in \cite{amin13} but makes simplifying assumptions.
+
+\section{Assumptions}
+
+\begin{itemize}
+\item The system is static-- optimizations are based only on the current state.
+\item Devices have the ability to connect to all networks within range.
+\item Devices can split traffic across networks in any configuration (they are not restricted to use one radio at a time, or even connect to one of each network type at a time).
+\item Devices have no minimum bandwidth requirement; if they can be allocated any nonzero amount, they will be.
+\item Devices also have no maximum bandwidth rate-- the network's rate is the bottleneck.
+\item As distance from an access point increases, a device's maximum bandwidth rate decreases linearly.
+\end{itemize}
+
+\section{Mathematics}
+\subsection{System Parameters}
+\begin{center}
+\renewcommand\arraystretch{1.2}
+\begin{tabular}{| c | p{12cm} |}
+\hline
+$A$ & Set of Internet Access Points \\ 
+\hline
+$U$ & Set of Users \\ 
+\hline
+$d_{ua}$ & Distance between user $u \in U$ and the center of network $a \in A$ \\ 
+\hline
+$d_{ua,norm}$ & Normalized distance between user $u \in U$ and the center of network $a \in A$, calculated as $d_{ua}$ divided by the radius of the network $a$ \\ 
+\hline
+$r_{a,max}$ & Maximum potential rate of network $a \in A$ if it had one user whose $d_{ua} = 0$ \\ 
+\hline
+$r_{ua,max}$ & Maximum achievable rate by user $u \in U$ on network $a \in A$, calculated as $r_{a,max} * d_{ua,norm}$ \\ 
+\hline
+$x_{ua}$ & Assignment variable. Detemines the percentage of $r_{ua,max}$ allocated to user $u \in U$ on network $a \in A$ with $0 \leq x_{ua} \leq 1$ \\ 
+\hline
+$r_{ua}$ & Calculated rate (bits/s) allocated to user $u \in U$ on network $a \in A$, equal to $x_{ua} * r_{ua,max}$ \\ 
+\hline
+$r_{ua,norm}$ & Normalized rate allocated to user $u \in U$ on network $a \in A$, calculated as $\displaystyle\frac{r_{ua}}{r_{ua,max}}$ \\[8pt] 
+\hline
+$r_{u}$ & Total rate allocated to user $u \in U$, calculated as $\sum_{a \in A} r_{ua}$ \\ 
+\hline
+$\gamma$ & Total bandwidth rate in the system, calculated as $\sum_{u \in U} r_u$ \\ 
+\hline
+$\gamma_{max}$ & Maximum possible value for $\gamma$ \\ 
+\hline
+$\gamma_{min}$ & Minimum possible value for $\gamma$ \\ 
+\hline
+$\gamma_{util}$ & Measure of spectral efficiency calculated as $\displaystyle\frac{\gamma - \gamma_{min}}{\gamma_{max} - \gamma{min}}$ \\[8pt] 
+\hline
+$\phi_{util}$ & Measure of fairness calculated as $\displaystyle\frac{\sum_{u \in U} (r_u - r{u,min})}{\sum_{u \in U} (r_{u,max} - r_{u,min})}$ \\[8pt] 
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Steps}
+\begin{enumerate}
+\item Define the set of constraints as 
+\begin{equation} \label{eq1}
+\sum_{u \in U} r_{ua,norm} \leq 1 \ \ \forall a \in A
+\end{equation}
+\begin{equation}
+0 \leq x_{ua} \leq 1 \ \ \forall u \in U, \forall a \in A
+\end{equation}
+\begin{equation}
+x_{ua} = 0 \text{ whenever } d_{ua,norm} > 1
+\end{equation}
+\item Solve a problem with the above constraints to maximize $\sum_{u \in U} r_u$ and record that value as $\gamma_{max}$.
+\item Solve a problem with the above constraints to minimize $\sum_{u \in U} r_u$ and record that value as $\gamma_{min}$.
+\item Solve a problem with the above constraints to maximize $\alpha * \gamma_{util} + \beta * \phi_{util}$, where $\alpha$ and $\beta$ are user-defined scalars to weight the importance of spectral efficiency and fairness respectively.
+\item Use the solution to (4) to calculate $r_{ua} \ \forall u \in U, \ \forall a \in A$ and represent these assignments visually.
+\end{enumerate}
+
+\begin{thebibliography}{9} 
+\bibitem{amin13}
+"Balancing Spectral Efficiency, Energy Consumption,
+and Fairness in Future Heterogeneous Wireless
+Systems with Reconfigurable Devices". Rahul Amin, Jim Martin, Juan Deaton, Luiz A. DaSilva, Amr Hussien, and Ahmed Eltawil. IEEE JOURNAL ON SELECTED AREAS IN COMMUNICATIONS, VOL. XX, NO. XX, MAY 2013.
+\end{thebibliography}
+
+\end{document}

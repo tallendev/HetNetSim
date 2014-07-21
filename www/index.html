@@ -6,11 +6,7 @@
   <link rel="stylesheet" type="text/css" href="css/holo.css">
   <link rel="stylesheet" type="text/css" href="css/normalize.css">
   <link rel="stylesheet" type="text/css" href="css/style.css">
-<!--  <link rel="stylesheet" type="text/css" href="holo-base-elements.css">
-  <link rel="stylesheet" type="text/css" href="holo-base-widgets.css">
-  <link rel="stylesheet" type="text/css" href="holo-kk-light-elements.css">
-  <link rel="stylesheet" type="text/css" href="holo-kk-light-widgets.css">-->
-  <title>HetNetSim Beta Test</title>
+  <title>HetNet Simulator</title>
 </head> 
 <body class="holo holo-light holo-accent-blue">
     <div id="simulation"></div>
@@ -182,24 +178,37 @@
         </ul>
         </div>
         
-        <!--<div id="parameters">
-        <h2 class="holo-divider">PARAMETERS</h2>
-        <ul class="holo-list">
-            <li>
-            <input id="param1" type="range" min="0" max="1" value="1" onclick='optimize()' name="fairness">
-            <label class="holo-label" for="param1">
-                Long Term Fairness
-            </label>
-            </li>
+    <div id="optimization">
+    <h2 class="holo-divider">OPTIMIZATION</h2>
+    <ul class="holo-list">
+        <li style="line-height: 24px;">
+        <input id="param1" type="range" min="0" max="1" value="0.5" step=".01" oninput='updateParams()' name="fairness" style="margin: 10px 0px 0px 10px;">
+        <label class="holo-label" for="param1" style="text-align: center; height: 24px; margin: 0px 0px 10px;">
+            Fairness Weight
+        </label>
+        </li>
 
-            <li>
-            <input id="param2" type="range" min="0" max="1" value="1" onclick='optimize()' name="efficiency">
-            <label class="holo-label" for="param2">
-                Spectral Efficiency
-            </label>
-            </li>
-        </ul>
-        </div>-->
+        <li>
+        <label id="fairnessVal" class="holo-label" style="padding-left: 12px; padding-right: 12px;">
+            Fairness Weight: 0.5
+        </label>
+        </li>
+
+        <li>
+        <label id="throughputVal" class="holo-label" style="padding-left: 12px; padding-right: 12px;">
+            Throughput Weight: 0.5
+        </label>
+        </li>
+
+        <li>
+        <div style="text-align: center;">
+        <button onclick="optimize()">
+        Optimize
+        </button>
+        </div>
+        </li>
+    </ul>
+    </div>
     </div>
     </div>
     </div>

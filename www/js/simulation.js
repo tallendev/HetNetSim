@@ -1,5 +1,14 @@
 /*
- *
+ * File: simulation.js
+ * Last Edit: 7/21/2014
+ * Author: Matthew Leeds
+ * Author: Tyler Allen
+ * Purpose: This script is the backend for the HetNet Simulation in index.html.
+ * It provides interactivity and communicates with the server to solve 
+ * linear programming problems. The main() function sets up the canvas and default
+ * values for variables. The changeMode() function is the controller that 
+ * calls appropriate functions to implement the modes. Pretty much every other
+ * function is a helper for those two.
  */
 
 // document level variables
@@ -22,7 +31,6 @@ var shape;
 var mode;
 var deviceID;
 var networkID;
-var switchID;
 var currentColor;
 var filterColor;
 var maxRates;
@@ -32,10 +40,9 @@ var alpha; // weight of aggregate throughput in the optimization
 var beta;  // weight of fairness in the optimization
 
 // constants
-var TRANSITION_DURATION = 500; // number of milliseconds elements will take to
-                               // fade in or out.
+var TRANSITION_DURATION = 500; // # of ms elements take to fade in or out
 var OPACITY_LEVEL = 0.5;       // full opacity level
-var DEVICES_COLOR = "gray";  
+var DEVICES_COLOR = "darkgray";  
 var BORDER_WIDTH = 5;         
 var BORDER_COLOR = "gray";    
 var GRIDLINE_GRANULARITY = 20; // determines fine/coarse gridlines
@@ -47,7 +54,7 @@ var GRIDLINE_GRANULARITY = 20; // determines fine/coarse gridlines
  */
 function main()
 {
-    w = $("body").width() - 260; // 260px is the width of the sidebar
+    w = $("body").width() - 260; // account for the width of the sidebar
     h = $("body").height();
 
     canvas = d3.select("#simulation")
@@ -150,8 +157,8 @@ function drawAxes() {
 
 
 /*
- * gatherData analyzes the simulation to collect the data needed for
- * optimization. 
+ * gatherData analyzes the simulation to collect the normalized distances
+ * between every device and access point, and stores these in simData. 
  */ 
 function gatherData()
 {
@@ -170,7 +177,7 @@ function gatherData()
                                              $(currentNetworkID).prop("cy").baseVal.value);
             var radius = $(currentNetworkID).prop("r").baseVal.value;
             if (distanceFromPoint < radius)
-                deviceInfo[currentNetworkID] = distanceFromPoint;
+                deviceInfo[currentNetworkID] = distanceFromPoint / radius;
             else
                 deviceInfo[currentNetworkID] = -1;
         }
@@ -486,7 +493,7 @@ function updateFilter()
         }
         for (var i = 0; i < colorArray.length; i++)
         {
-            switchID = '#switch' + (i+3).toString().replace(/^[0]+/g,"");
+            var switchID = '#switch' + (i+3).toString().replace(/^[0]+/g,"");
             if (!$(switchID).prop('checked'))
             {
                 console.log("on " + switchID);
@@ -538,12 +545,12 @@ function removeBehaviors()
 
 /*
  * updateParams updates the variable used to weight fairness and aggregate
- * throughput, and reflects those values in the sidebar.
+ * throughput, alpha and beta, and reflects those values in the sidebar.
  */
 function updateParams()
 {
-   beta = $('#param1').val();
-   alpha = (1 - beta).toFixed(2);
+   beta = parseFloat($('#param1').val()).toFixed(2);
+   alpha = (1 - Number(beta)).toFixed(2);
    $('#fairnessVal').html("Fairness Weight: " + beta);
    $('#throughputVal').html("Throughput Weight: " + alpha);
 }
@@ -557,31 +564,25 @@ function updateParams()
 function optimize()
 {
     //TODO: implement
+    /*$.ajax({
+        type     : 'POST',
+        url      : 'process.php',
+        data     : {'problem' : $('#problem').val()},
+        dataType : 'json',
+        success  : function(data) {
+            if (data.success) {
+                $('#result').append("<p>" + data.answer + "</p>");
+            } else {
+                console.log("POST in function 'optimize()' failed.");
+            }
+        }
+    });*/
 }
 
-
+// When the page loads, open the sidebar.
 $(document).ready(function() {
     $('#simple-menu').sidr(side="left");
     jQuery.sidr(method="open")
-
-    /*$('form').submit(function(event)
-    {
-        $('#result').empty();
-        $.ajax({
-            type     : 'POST',
-            url      : 'process.php',
-            data     : {'problem' : $('#problem').val()},
-            dataType : 'json',
-            success  : function(data) {
-                if (data.success) {
-                    $('#result').append("<p>" + data.answer + "</p>");
-                } else {
-                    console.log("failure");
-                }
-            }
-        });
-        event.preventDefault();
-    });*/
 });
 
 main();

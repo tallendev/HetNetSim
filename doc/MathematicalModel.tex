@@ -23,7 +23,7 @@ This document serves to explain the assumptions and mathematical structure of th
 \item Devices have the ability to connect to all networks within range.
 \item Devices can split traffic across networks in any configuration (they are not restricted to use one radio at a time, or even connect to one of each network type at a time).
 \item Devices have no minimum bandwidth requirement; if they can be allocated any nonzero amount, they will be.
-\item Signals follow the free space propagation model, meaning a device's achievable data rate is \textit{approximately} the network's maximum data rate times the inverse square of the normalized distance between the device and the AP. 
+\item Signals follow the free space propagation model, meaning a device's achievable data rate is \textit{approximately} the network's maximum data rate times the square of the normalized distance between the device and the edge of the AP. 
 \item Devices also have no maximum bandwidth rate-- the network's rate is the bottleneck.
 \end{itemize}
 
@@ -51,8 +51,6 @@ $x_{ua}$ & Assignment variable. Detemines the percentage of $r_{ua,max}$ allocat
 \hline
 $r_{ua}$ & Calculated rate allocated to user $u \in U$ on network $a \in A$, equal to $x_{ua} * r_{ua,max}$ \\ 
 \hline
-$r_{ua,norm}$ & Normalized rate allocated to user $u \in U$ on network $a \in A$, calculated as $\displaystyle\frac{r_{ua}}{r_{ua,max}}$ \\[8pt] 
-\hline
 $r_{u}$ & Total rate allocated to user $u \in U$, calculated as $\sum_{a \in A} r_{ua}$ \\ 
 \hline
 $\alpha$ & User-defined scalar to control the importance of aggregate throughput. $0 \leq \alpha \leq 1$ \\
@@ -70,7 +68,7 @@ $\beta$ & User-defined scalar to control the importance of fairness. $0 \leq \be
 $$\alpha * \sum_{u \in U} r_u + \beta * z$$
 \tab{subject to:}
 \begin{equation} \label{eq1}
-\sum_{u \in U} r_{ua,norm} \leq 1 \ \ \forall a \in A
+\sum_{u \in U} x_{ua} \leq 1 \ \ \forall a \in A
 \end{equation}
 \begin{equation}
 0 \leq x_{ua} \leq 1 \ \ \forall u \in U, \forall a \in A

@@ -1,6 +1,6 @@
 /*
  * File: simulation.js
- * Last Edit: 7/21/2014
+ * Last Edit: 7/22/2014
  * Author: Matthew Leeds
  * Author: Tyler Allen
  * Purpose: This script is the backend for the HetNet Simulation in index.html.
@@ -79,7 +79,7 @@ function main()
                    'triangle' : genTriangle}
     colorArray = ["red", "green", "blue"];
     color = colorArray[0];
-    maxRates = {"red": 0, "green": 0, "blue": 0};
+    maxRates = {};
     instructions = {"Add"     : "Click anywhere to add a network or device.",
                     "Resize"  : "Click and drag on any network to resize it.",
                     "Move"    : "Click and drag on any network to move it.",
@@ -158,30 +158,40 @@ function drawAxes() {
 
 /*
  * gatherData analyzes the simulation to collect the normalized distances
- * between every device and access point, and stores these in simData. 
+ * between every device and access point, and calculates maximum achievable 
+ * data rates using r_ua,max = r_a,max / (1 - d_ua,norm)^2. These are stored in 
+ * the simData json object. See the documentation for more information. 
  */ 
 function gatherData()
 {
-    simData = {};
+    simData = {}; // will contain max data rates for every network-device pair
     for (var i = 1; i <= deviceID; i++)
     {
         var currentDeviceID = "#device" + i;
-        var deviceInfo = {};
-        var xforms = $(currentDeviceID).prop("transform").baseVal;
-        for (var j = 1; j <= networkID; j++)
+        if (!d3.select(currentDeviceID).empty()) // make sure it wasn't deleted
         {
-            var currentNetworkID = "#network" + j;
-            var distanceFromPoint = distance(xforms.getItem(0).matrix.e, 
-                                             xforms.getItem(0).matrix.f,
-                                             $(currentNetworkID).prop("cx").baseVal.value,
-                                             $(currentNetworkID).prop("cy").baseVal.value);
-            var radius = $(currentNetworkID).prop("r").baseVal.value;
-            if (distanceFromPoint < radius)
-                deviceInfo[currentNetworkID] = distanceFromPoint / radius;
-            else
-                deviceInfo[currentNetworkID] = -1;
+            var deviceInfo = {}; // will contain max data rates for each network
+            var xforms = $(currentDeviceID).prop("transform").baseVal;
+            for (var j = 1; j <= networkID; j++)
+            {
+                var currentNetworkID = "#network" + j;
+                if (!d3.select(currentNetworkID).empty()) // make sure it wasn't deleted
+                {
+                    var distanceFromPoint = distance(xforms.getItem(0).matrix.e, 
+                                                     xforms.getItem(0).matrix.f,
+                                                     $(currentNetworkID).prop("cx").baseVal.value,
+                                                     $(currentNetworkID).prop("cy").baseVal.value);
+                    var radius = $(currentNetworkID).prop("r").baseVal.value;
+                    if (distanceFromPoint < radius)
+                        deviceInfo[currentNetworkID] = (maxRates[currentNetworkID] * 
+                                                        Math.pow((1 - (distanceFromPoint / radius)), 2))
+                                                       .toFixed(6);
+                    else
+                        deviceInfo[currentNetworkID] = 0;
+                }
+            }
+            simData[currentDeviceID] = deviceInfo;
         }
-        simData[currentDeviceID] = deviceInfo;
     }
     console.log(simData);
 }
@@ -195,12 +205,13 @@ function genCircle(svg, cx, cy, radius, newColor)
 {
     var theColor = d3.rgb(newColor);
     networkID++;
-    if (maxRates[newColor] == 0)
-    {
-        maxRates[newColor] = prompt("Please enter the maximum possible " 
-                                  + "bandwidth rate for this network type "
-                                  + "in bits/s:");
-    }
+    inputStr = prompt("Please enter the maximum possible bandwidth rate for " 
+                    + "this network as a positive integer (default 1000): ");
+    inputNum = ~~Number(inputStr);
+    if (String(inputNum) === inputStr && inputNum > 0)
+        maxRates["#network" + networkID] = inputNum;
+    else
+        maxRates["#network" + networkID] = 1000;
     svg.append("circle")
           .attr("id", "network" + networkID)
           .attr("cx", cx)
@@ -258,7 +269,7 @@ function changeText()
 function modeAdd()
 {
     $('#shape').show();
-    $('#color').show();
+    changeShape();
     canvas.on("click", function()
     {
         drawFunc = buttonFuncs[shape];
@@ -329,6 +340,7 @@ function modeOptimize()
 {
     $('#optimization').show();
     gatherData();
+    updateParams();
 }
 
 /*
@@ -559,24 +571,101 @@ function updateParams()
 /*
  * optimize uses the values of alpha and beta, and the data in simData to 
  * form a linear programming problem to optimize the system. Then it calls 
- * the LPSolver written in C++ using a shared library.
+ * the LPSolver written in C++ using a shared library. The format for the 
+ * problem passed to the solver is: "objeqn;ineq,ineq,;eq,eq,;".
  */
 function optimize()
 {
-    //TODO: implement
-    /*$.ajax({
+    var problemFormulation = "";
+    var numDevices = Object.keys(simData).length;
+    if (numDevices == 0)
+    {
+        alert("Please add networks and devices before attempting to optimize "
+            + "the system.");
+        return;
+    }
+
+    // formulate the objective equation, alpha * sum(r_u) + beta * z
+    var objEqn = "";
+    for (var device in simData)
+    {
+        if (simData.hasOwnProperty(device))
+        {
+            for (var network in simData[device])
+            {
+                if (simData[device].hasOwnProperty(network))
+                {
+                    objEqn += String(alpha * simData[device][network]);
+                    objEqn += " ";
+                }
+            }
+        }
+    }
+    if (objEqn == "") // there are no networks
+    {
+        alert("Please add networks and devices before attempting to optimize "
+            + "the system.");
+        return;
+    }
+    objEqn += String(beta);
+    problemFormulation += objEqn + ";";
+
+    // formulate constraints to ensure networks don't exceed max bandwidth
+    var inequalities = "";
+    var numNetworks = Object.keys(simData[Object.keys(simData)[0]]).length;
+    for (var i = 0; i < numNetworks; i++)
+    {
+        for (var j = 0; j < numDevices; j++)
+        {
+            for (var k = 0; k < numNetworks; k++)
+            {
+                if (k == i)
+                    inequalities += "1 ";
+                else
+                    inequalities += "0 ";
+            }
+        }
+        inequalities += "0 1,"; // 0 is z's coefficient, eqn must be <= 1
+    }
+   
+    // formulate constraints to ensure z <= r_u for all devices
+    for (var i = 0; i < numDevices; i++)
+    {
+        var currentDevice = simData[Object.keys(simData)[i]];
+        for (var j = 0; j < numDevices; j++)
+        {
+            for (var k = 0; k < numNetworks; k++)
+            {
+                if (j == i)
+                {
+                    inequalities += String(-1 * currentDevice[Object.keys(currentDevice)[k]]);
+                    inequalities += " ";
+                }
+                else
+                {
+                    inequalities += "0 ";
+                }
+            }
+        }
+        inequalities += "1 0,"; // 1 is z's coefficient, eqn <= 0
+    }
+    problemFormulation += inequalities + ";;";
+    console.log(problemFormulation);
+
+    $.ajax({
         type     : 'POST',
         url      : 'process.php',
-        data     : {'problem' : $('#problem').val()},
+        data     : {'problem' : problemFormulation},
         dataType : 'json',
         success  : function(data) {
             if (data.success) {
-                $('#result').append("<p>" + data.answer + "</p>");
+                alert(data.answer);
+                //TODO: represent the solution visually
             } else {
                 console.log("POST in function 'optimize()' failed.");
             }
         }
-    });*/
+    });
 }
 
 // When the page loads, open the sidebar.

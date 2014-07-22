@@ -16,7 +16,6 @@
 \begin{document}
 \maketitle
 This document serves to explain the assumptions and mathematical structure of the model being used in our HetNet Simulator in order to optimize it. It is based on the model used in \cite{amin13} but makes simplifying assumptions.
-
 \section{Assumptions}
 
 \begin{itemize}
@@ -24,8 +23,8 @@ This document serves to explain the assumptions and mathematical structure of th
 \item Devices have the ability to connect to all networks within range.
 \item Devices can split traffic across networks in any configuration (they are not restricted to use one radio at a time, or even connect to one of each network type at a time).
 \item Devices have no minimum bandwidth requirement; if they can be allocated any nonzero amount, they will be.
+\item Signals follow the free space propagation model, meaning a device's achievable data rate is \textit{approximately} the network's maximum data rate times the inverse square of the normalized distance between the device and the AP. 
 \item Devices also have no maximum bandwidth rate-- the network's rate is the bottleneck.
-\item As distance from an access point increases, a device's maximum bandwidth rate decreases linearly.
 \end{itemize}
 
 \section{Mathematics}
@@ -38,13 +37,15 @@ $A$ & Set of Internet Access Points \\
 \hline
 $U$ & Set of Users \\ 
 \hline
+$l_a$ & Radius of network $a \in A$ \\
+\hline
 $d_{ua}$ & Distance between user $u \in U$ and the center of network $a \in A$ \\ 
 \hline
-$d_{ua,norm}$ & Normalized distance between user $u \in U$ and the center of network $a \in A$, calculated as $d_{ua}$ divided by the radius of the network $a$ \\ 
+$d_{ua,norm}$ & Normalized distance between user $u \in U$ and the center of network $a \in A$, calculated as $\displaystyle\frac{d_{ua}}{l_a}$ \\[8pt] 
 \hline
 $r_{a,max}$ & Maximum potential rate of network $a \in A$ if it had one user whose $d_{ua} = 0$ \\ 
 \hline
-$r_{ua,max}$ & Maximum achievable rate by user $u \in U$ on network $a \in A$, calculated as $r_{a,max} * (1 - d_{ua,norm})$ whenever $d_{ua,norm} \leq 1$ or 0 otherwise. \\ 
+$r_{ua,max}$ & Maximum achievable rate by user $u \in U$ on network $a \in A$, calculated as $\displaystyle\frac{r_{a,max}}{(d_{ua,norm})^2}$ whenever $d_{ua,norm} \leq 1$ or 0 otherwise. \\[8pt] 
 \hline
 $x_{ua}$ & Assignment variable. Detemines the percentage of $r_{ua,max}$ allocated to user $u \in U$ on network $a \in A$ with $0 \leq x_{ua} \leq 1$ \\ 
 \hline
@@ -82,7 +83,7 @@ z \leq r_u \ \ \forall u \in U
 \end{equation}
 
 \item Use the solution to calculate $r_{ua} \ \forall u \in U, \ \forall a \in A$ and represent these assignments visually. 
-\item Allow the user to adjust $\alpha$ and $\beta$ and observe the consequences.
+\item Allow the user to adjust $\alpha$ and $\beta$ and observe the effects.
 \end{enumerate}
 
 \begin{thebibliography}{9} 

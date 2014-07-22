@@ -45,7 +45,7 @@ $d_{ua,norm}$ & Normalized distance between user $u \in U$ and the center of net
 \hline
 $r_{a,max}$ & Maximum potential rate of network $a \in A$ if it had one user whose $d_{ua} = 0$ \\ 
 \hline
-$r_{ua,max}$ & Maximum achievable rate by user $u \in U$ on network $a \in A$, calculated as $r_{a,max} * (d_{ua,norm})^2$ whenever $d_{ua,norm} \leq 1$ or 0 otherwise. \\[8pt] 
+$r_{ua,max}$ & Maximum achievable rate by user $u \in U$ on network $a \in A$, calculated as $r_{a,max} * (1 - d_{ua,norm})^2$ whenever $d_{ua,norm} \leq 1$ or 0 otherwise. \\[8pt] 
 \hline
 $x_{ua}$ & Assignment variable. Detemines the percentage of $r_{ua,max}$ allocated to user $u \in U$ on network $a \in A$ with $0 \leq x_{ua} \leq 1$ \\ 
 \hline

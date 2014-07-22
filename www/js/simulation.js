@@ -1,5 +1,14 @@
 /*
- *
+ * File: simulation.js
+ * Last Edit: 7/21/2014
+ * Author: Matthew Leeds
+ * Author: Tyler Allen
+ * Purpose: This script is the backend for the HetNet Simulation in index.html.
+ * It provides interactivity and communicates with the server to solve 
+ * linear programming problems. The main() function sets up the canvas and default
+ * values for variables. The changeMode() function is the controller that 
+ * calls appropriate functions to implement the modes. Pretty much every other
+ * function is a helper for those two.
  */
 
 // document level variables
@@ -14,6 +23,7 @@ var xAxis;
 var yAxis;
 
 // simulation level variables
+var simData;
 var buttonFuncs;
 var colorArray;
 var color;
@@ -21,18 +31,18 @@ var shape;
 var mode;
 var deviceID;
 var networkID;
-var switchID;
 var currentColor;
 var filterColor;
 var maxRates;
 var instructions;
 var textBox;
+var alpha; // weight of aggregate throughput in the optimization
+var beta;  // weight of fairness in the optimization
 
 // constants
-var TRANSITION_DURATION = 500; // number of milliseconds elements will take to
-                               // fade in or out.
+var TRANSITION_DURATION = 500; // # of ms elements take to fade in or out
 var OPACITY_LEVEL = 0.5;       // full opacity level
-var DEVICES_COLOR = "gray";  
+var DEVICES_COLOR = "darkgray";  
 var BORDER_WIDTH = 5;         
 var BORDER_COLOR = "gray";    
 var GRIDLINE_GRANULARITY = 20; // determines fine/coarse gridlines
@@ -44,7 +54,7 @@ var GRIDLINE_GRANULARITY = 20; // determines fine/coarse gridlines
  */
 function main()
 {
-    w = $("body").width() - 260; // 260px is the width of the sidebar
+    w = $("body").width() - 260; // account for the width of the sidebar
     h = $("body").height();
 
     canvas = d3.select("#simulation")
@@ -75,7 +85,7 @@ function main()
                     "Move"    : "Click and drag on any network to move it.",
                     "Delete"  : "Click on any network or device to delete it.",
                     "Filter"  : "Filter networks and devices using the switches.",
-                    "Optimize": "Adjust the sliders to change the weights of optimization parameters."
+                    "Optimize": "Adjust the slider to change the weights of optimization parameters."
                    }
     shape = "circle";
     $('input[value="Add"]').prop('checked', true);
@@ -147,41 +157,35 @@ function drawAxes() {
 
 
 /*
- * gatherData analyzes the simulation to collect the data needed for
- * optimization. 
+ * gatherData analyzes the simulation to collect the normalized distances
+ * between every device and access point, and stores these in simData. 
  */ 
 function gatherData()
 {
-    var simData = {};
-    d3.selectAll("path").each( function()
+    simData = {};
+    for (var i = 1; i <= deviceID; i++)
     {
-        console.log("this device: " + this);
-        var elementID = d3.select(this).attr("id");
-        console.log(elementID);
+        var currentDeviceID = "#device" + i;
         var deviceInfo = {};
-        var translation = d3.select(this).attr("transform");
-        console.log(translation);
-        var pathX = parseInt(translation.substr(translation.indexOf("("),
-                                                translation.indexOf(",")));
-        var pathY = parseInt(translation.substr(translation.indexOf(","),
-                                                translation.indexOf(")")));
-        d3.selectAll("circle").each( function()
+        var xforms = $(currentDeviceID).prop("transform").baseVal;
+        for (var j = 1; j <= networkID; j++)
         {
-            var thisCircle = d3.select(this);
-            var distanceFromPoint = distance(pathX, pathY, 
-                                             thisCircle.attr("cx"),
-                                             thisCircle.attr("cy"));
-            if (distanceFromPoint < thisCircle.attr("r"))
-            {
-                deviceInfo.thisCircle.attr("id") = distanceFromPoint;
-            }
-        });
-
-        simData.elementID = deviceInfo;
-   });
-   console.log(simData);
-
+            var currentNetworkID = "#network" + j;
+            var distanceFromPoint = distance(xforms.getItem(0).matrix.e, 
+                                             xforms.getItem(0).matrix.f,
+                                             $(currentNetworkID).prop("cx").baseVal.value,
+                                             $(currentNetworkID).prop("cy").baseVal.value);
+            var radius = $(currentNetworkID).prop("r").baseVal.value;
+            if (distanceFromPoint < radius)
+                deviceInfo[currentNetworkID] = distanceFromPoint / radius;
+            else
+                deviceInfo[currentNetworkID] = -1;
+        }
+        simData[currentDeviceID] = deviceInfo;
+    }
+    console.log(simData);
 }
+
 
 /*
  * The genCircle function can be called to generate new circle elements.
@@ -320,8 +324,11 @@ function modeFilter()
     updateFilter();
 }
 
+
 function modeOptimize()
 {
+    $('#optimization').show();
+    gatherData();
 }
 
 /*
@@ -336,29 +343,42 @@ function changeMode()
     $('#shape').hide();
     $('#color').hide();
     $('#filters').hide();
+    $('#optimization').hide();
     showAll(); // shows all elements (circles and triangles)
     removeBehaviors(); // disables click and drag behaviors
 
     switch (mode)
     {
         case "Add":
+        {
             modeAdd();
             break;
+        }
         case "Resize":
+        {
             modeResize();
             break;
+        }
         case "Move":
+        {
             modeMove();
             break;
+        }
         case "Delete":
+        {
             modeDelete();
             break;
+        }
         case "Filter":
+        {
             modeFilter();
             break;
+        }
         case "Optimize":
+        {
             modeOptimize();
             break;
+        }
     }
 
     changeText();
@@ -473,7 +493,7 @@ function updateFilter()
         }
         for (var i = 0; i < colorArray.length; i++)
         {
-            switchID = '#switch' + (i+3).toString().replace(/^[0]+/g,"");
+            var switchID = '#switch' + (i+3).toString().replace(/^[0]+/g,"");
             if (!$(switchID).prop('checked'))
             {
                 console.log("on " + switchID);
@@ -523,28 +543,46 @@ function removeBehaviors()
 }
 
 
+/*
+ * updateParams updates the variable used to weight fairness and aggregate
+ * throughput, alpha and beta, and reflects those values in the sidebar.
+ */
+function updateParams()
+{
+   beta = parseFloat($('#param1').val()).toFixed(2);
+   alpha = (1 - Number(beta)).toFixed(2);
+   $('#fairnessVal').html("Fairness Weight: " + beta);
+   $('#throughputVal').html("Throughput Weight: " + alpha);
+}
+
+
+/*
+ * optimize uses the values of alpha and beta, and the data in simData to 
+ * form a linear programming problem to optimize the system. Then it calls 
+ * the LPSolver written in C++ using a shared library.
+ */
+function optimize()
+{
+    //TODO: implement
+    /*$.ajax({
+        type     : 'POST',
+        url      : 'process.php',
+        data     : {'problem' : $('#problem').val()},
+        dataType : 'json',
+        success  : function(data) {
+            if (data.success) {
+                $('#result').append("<p>" + data.answer + "</p>");
+            } else {
+                console.log("POST in function 'optimize()' failed.");
+            }
+        }
+    });*/
+}
+
+// When the page loads, open the sidebar.
 $(document).ready(function() {
     $('#simple-menu').sidr(side="left");
     jQuery.sidr(method="open")
-
-    /*$('form').submit(function(event)
-    {
-        $('#result').empty();
-        $.ajax({
-            type     : 'POST',
-            url      : 'process.php',
-            data     : {'problem' : $('#problem').val()},
-            dataType : 'json',
-            success  : function(data) {
-                if (data.success) {
-                    $('#result').append("<p>" + data.answer + "</p>");
-                } else {
-                    console.log("failure");
-                }
-            }
-        });
-        event.preventDefault();
-    });*/
 });
 
 main();

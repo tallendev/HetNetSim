@@ -11,6 +11,18 @@
 #include "Solver.h"
 #include "Simplex.h"
 
+/**
+ * This function parses out the Linear Program from a string into a 
+ * LinearProgram object. This does minimal error checking and errors will 
+ * happen if the correct format is not followed! Please error check
+ * beforehand until this function is improved!
+ *
+ * Afterwards, the program is sent off to be solved by the appropriate Solver
+ * (currently only the simplex method is supported.)
+ *
+ * Param: problem - The Linear Program in string form.
+ * Return: The final solution.
+ */
 LPSolution* Solver::solve(std::string& problem)
 {
     size_t firstsemicolon = problem.find(";", 0);

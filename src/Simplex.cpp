@@ -17,6 +17,8 @@
  * Constructor for Simplex objects.
  * Takes in a Linear Program, determines the number of constraints,
  * rows, and columns, and calls lpToTable on it to format it as a matrix.
+ *
+ * Param: LP - the Linear Program to solve.
  */
 Simplex::Simplex(LinearProgram* lp)
 {
@@ -45,7 +47,14 @@ Simplex::Simplex(LinearProgram* lp)
 
 }
 
-// prints a matrix to stdout for debugging
+#ifdef SERVER_DEBUG
+/**
+ * Debug function for displaying a matrix. 
+ *
+ * Param: matrix - the matrix to print.
+ * Param: x - the length of the matrix.
+ * Param: y - the width of the matrix.
+ */
 void Simplex::displayMatrix(double** matrix, int x, int y)
 {
     for (int i = 0; i < x; i++)
@@ -60,10 +69,18 @@ void Simplex::displayMatrix(double** matrix, int x, int y)
 
     fprintf(stderr, "\n");
 }
+#endif
 
 /**
  * Finds the greatest common denominator given two numbers.
- * Used in the choose method.
+ * Used in the choose method. This function was originally intended for use
+ * by the choose function, which allows for extremely large integer values - 
+ * thus unsigned long longs.
+ *
+ * Param: x - The first number to find the GCD between.
+ * Param y - the second number to find the GCD between.
+ *
+ * return: The GCD between x and y.
  */
 unsigned long long Simplex::gcd(unsigned long long x, unsigned long long y)
 {
@@ -77,10 +94,17 @@ unsigned long long Simplex::gcd(unsigned long long x, unsigned long long y)
     return x;
 }
 
+
 /**
  * Calculates the combination (n choose k), which is used as
  * an upper limit on the number of iterations the solver is 
- * allowed to complete.
+ * allowed to complete. These numbers get large quicly, and 
+ * so we are using unsigned long longs as potential return values.
+ *
+ * Param: n - the set
+ * Param: k - how many to choose from n
+ *
+ * Return: n choose k
  */
 unsigned long long Simplex::choose(int n, int k)
 {
@@ -121,6 +145,8 @@ unsigned long long Simplex::choose(int n, int k)
  * Assumes that there are only <= and = constraints, that the objective 
  * equation has no constant argument (just coefficients), and that each 
  * constraint has n + 1 numbers, one for each decision variable and a constant.
+ *
+ * Param: lp - the Linear Program to create a table rom.
  */ 
 void Simplex::lpToTable(LinearProgram* lp)
 {
@@ -139,6 +165,9 @@ void Simplex::lpToTable(LinearProgram* lp)
  * A helper method for lpToTable.
  * Takes in a list and starting value and puts each number in the list
  * into the table on the row indicated by the starting value.
+ *
+ * Param: list - the list to parse values from
+ * Param: start - Where to start adding to the table. 
  */
 void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
 {
@@ -169,7 +198,14 @@ void Simplex::tokenizeToMatrix(LinkedList<std::string>* list, int start)
  * the variable that leaves the basis. The pivot is accomplished by dividing
  * every entry in the pivot row by the value at table[pivotRow][pivotCol],
  * and subtracting from every other row a multiple of this new pivot row, 
- * such that they have the value 0 in the pivot column.   
+ * such that they have the value 0 in the pivot column.
+ *
+ * Param: table - the table to perform a pivot operation on.
+ * Param: pivotRow - the number of rows that are permitted to be the pivot
+ *                   row
+ * Param: pivotCol - the number of columns permitted to be the pivot column.
+ * Param: numRows - the number of rows in the table.
+ * Param: numCols - the number of columns in the table.   
  */
 void Simplex::pivot(double** table, int pivotRow, int pivotCol, 
                                     int numRows, int numCols)
@@ -214,6 +250,8 @@ void Simplex::pivot(double** table, int pivotRow, int pivotCol,
  *
  * When true is returned from this, go through both phases of the simplex
  * method. Otherwise, just use the standard simplex method (Phase II).
+ *
+ * return: True if we need to check feasibility.
  */
 bool Simplex::isTwoPhase()
 {
@@ -246,6 +284,8 @@ bool Simplex::isTwoPhase()
  * calls checkFeasibility() if it is. optimize() is then called in either 
  * case to (hopefully) arrive at a final optimal solution, and an LPSolution
  * object is returned based on that.
+ *
+ * return: The LPSolution containing the result.
  */
 LPSolution* Simplex::solve()
 {
@@ -285,6 +325,10 @@ LPSolution* Simplex::solve()
  * indicated by the final table. In that case, the appropriate rows and 
  * columns are copied over to the original table. Otherwise, 
  * false is returned.
+ *
+ * return: True if Feasible.
+ *
+ * TODO: refactor this endless function
  */
 bool Simplex::checkFeasibility()
 {
@@ -429,7 +473,6 @@ bool Simplex::checkFeasibility()
     if ((solvable = (relatedSol.getErrorCode() == 0 &&
         std::abs(relatedSol.getZValue()) < ZERO_TOLERANCE)))
     {
-        //TODO: check for artifical variables in the basis
         // Transfer the BFS we found to the original table for solving later.
         for (int i = 0; i < numConstraints; i++)
         {
@@ -462,6 +505,15 @@ bool Simplex::checkFeasibility()
  * as many times as necessary (under a limit) to increase the z-value (the
  * value of the objective equation). See the documentation for details on 
  * the algorithm used.
+ *
+ * Param: table - the table we are currently optimizing.
+ * Param: sol - the solution we are storing results in.
+ * Param: curRows - the current number of rows in the table.
+ * Param: curCols - the current number of columns in the table.
+ * Param: constraintRows - the number of rows containing constraints.
+ *
+ * TODO: should probably be refactored to return the error code rather than
+ *       take in the solution and set it.
  */
 void Simplex::optimize(double** table, LPSolution* sol, int curRows, 
                       int curCols, int constraintRows)

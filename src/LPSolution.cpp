@@ -11,7 +11,7 @@
 /**
  * Constructor for LPSolution class.
  */
-LPSolution::LPSolution() : errorCode(100), optimalValues(0), 
+LPSolution::LPSolution() : errorCode(DEFAULT), optimalValues(0), 
                            numOptimalValues(0), zValue(0)
 {
 }

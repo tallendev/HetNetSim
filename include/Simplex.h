@@ -1,9 +1,7 @@
 /**
- * This class represents a Linear Program solver (may later be extended
- * to solve other types of problems?). This is a Singleton class that receives
- * LinearProgram objects and returns LPSolution references. This solver
- * will be following the Singleton design pattern, as it should not have
- * state of its own.
+ * This class represents an implementation of the Two-phase simplex method. 
+ * It stores the necessary state for solving the problem and contains methods
+ * for solving the problem.
  *
  * Version: 06/27/2014
  * Author: Tyler Allen
@@ -28,12 +26,19 @@
 class Simplex : public Solve 
 {
     private:
+        /** The counted number of decision variables in the LP. */
         int numDecisionVars;
+        /** The number of total constraints. */
         int numConstraints;
+        /** The number of less than or equal constraints. */
         int numLeqConstraints;
+        /** The number of equality constraints. */
         int numEqConstraints;
+        /** The table we are storing our representation of the problem into. */
         double** table;
+        /** Number of rows in the table. */
         int numRows;
+        /** Number of columns. */ 
         int numCols;
    protected: 
         unsigned long long choose(int n, int k);
@@ -47,6 +52,10 @@ class Simplex : public Solve
         bool isTwoPhase();
         
     public:
+        /**
+         * Attempt to prevent rounding error for zero. May need to be reduced
+         * in the future to improve precision.
+         */
         static constexpr double ZERO_TOLERANCE = 0.0001;
         
         Simplex(LinearProgram* lp);

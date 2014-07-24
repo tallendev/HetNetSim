@@ -2,6 +2,11 @@
  * This class represents a Linear Program in our model. It contains our
  * optimization problem, variable limitations, as well as the list of
  * constraints.
+ *
+ * Author: Tyler Allen
+ * Author: Matthew Leeds
+ *
+ * Version 07/24/14
  */
 
 #ifndef LINEARPROGRAM_H
@@ -12,10 +17,13 @@
 
 class LinearProgram {
     private:
+        /* The objective equation.*/
         std::string equation;
         // example: 2 3 -4
         // meaning: 2x1 + 3x2 - 4x3 = z
+        /** A list of less than or equal constraints. */
         LinkedList<std::string> leqConstraints; // <= constraints
+        /** List of equality constraints. */
         LinkedList<std::string> eqConstraints; // = constraints
 
     public:
@@ -30,7 +38,6 @@ class LinearProgram {
         std::string& getEquation();
         LinkedList<std::string>* getLeqConstraints();
         LinkedList<std::string>* getEqConstraints();
-        // int ValidateFormat();
 
 };
 

@@ -11,7 +11,7 @@ $(document).ready(function() {
                 if (data.success) {
                     $('#result').append("<p>" + data.answer + "</p>");
                 } else {
-                    console.log("failure");
+                    console.log("POST failure in process.php");
                 }
             }
         });

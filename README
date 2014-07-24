@@ -1,3 +1,5 @@
+#General:
+
 This project is a Heterogeneous Network Simulation Framework. It provides a 
 web-based front-end allowing users to configure a visual representation of a 
 Heterogeneous Network, and it will attempt to optimize it. The optimization 
@@ -19,7 +21,7 @@ This project was intended as somewhat of a proof-of-concept. It was completed
 with time constraints; the provided front end and some parts of the solver 
 could use refactoring. 
 
-Installation Requirements:
+#Installation Requirements:
 
 We have provided a short PHP script to function as the back-end. In order for
 the Solver to be accessable to be PHP, the shared library generated using "make"
@@ -42,11 +44,11 @@ to increase it dynamically:
 post_max_size=1000M
 
 
-Solver Specification/Usage:
+#Solver Specification/Usage:
 
 
 
-Debugging:
+#Debugging:
 
 Assuming the correct system setup, all PHP error will go to the standard 
 PHP log in /var/log. All apache errors will go to /var/log/apache2. If any sort 
@@ -64,6 +66,7 @@ This will require the same setup as above in the php.ini file, except in
 /etc/phpt5/cli/php.ini instead.
 
 
+#Developers
 This project was developed in the Summer of 2014, during the Clemson Data Intensive Computing REU by
 Tyler Allen of Western Carolina University and Matthew Leeds of The University
 of Alabama, with Dr. James Martin as our mentor. 

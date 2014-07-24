@@ -47,6 +47,16 @@ post_max_size=1000M
 # Solver Specification/Usage:
 
 
+# www
+
+The www directory contains all of the web content that we have created. 
+index.html, process.php, and everything contained in www/js and www/css are 
+relevant. Everything else is test code and proof of concept. We use several 
+web frameworks to create a more visual design for our website. Thanks to Sidr,
+holo-web, jQuery, and D3.js for helping us to develop a more visual and 
+intuitive experience.
+
+
 
 # Debugging:
 

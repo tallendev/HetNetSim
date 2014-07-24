@@ -16,6 +16,9 @@
 class Solve
 {
     public:
+        /** This function is intended to be the entry method into our Solve 
+         * type.
+         */
         virtual LPSolution* solve()=0;
 };
 

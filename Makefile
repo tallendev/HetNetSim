@@ -2,8 +2,8 @@ CC=g++-4.8
 ifeq (clang, $(firstword $(MAKECMDGOALS)))
 	CC=clang
 endif
-CFLAGS= -Wall -Wextra -Wno-unused-label -Wno-literal-suffix -Wno-unused-function -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -std=gnu++11
-DEBUG= -g -DSERVER_DEBUG
+CFLAGS= -Wall -Wextra -Wno-unused-label -Wno-literal-suffix -Wno-unused-function -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers -std=gnu++11 #-march=native -O2
+#DEBUG= -g -DSERVER_DEBUG
 CPPEXT=cpp
 HEXT=h
 OBJEXT=o

@@ -1,9 +1,17 @@
 /**
- * main program that is the entry point when used as a shared library.
+ * Main program that is the entry point when used as a shared library. This 
+ * file needs to be ran appropriately through SWIG to generate the C++/PHP 
+ * bindings - an example is located in the Makefile if you wish to compile it 
+ * seperately. 
+ *
+ *
  * Takes in a string that is the problem in the format:
  * "objeqn;ineq,ineq,;eq,eq,;"
  * and returns the solution, a string with the z value and optimal
  * values for the decision variables.
+ *
+ * Authors: Tyler Allen, Matthew Leeds
+ * Version - 07/24/14
  */
 %{
 #include "interface.h"

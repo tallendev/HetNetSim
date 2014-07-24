@@ -1,14 +1,15 @@
-    /**
-     * This class represents a Linear Program solver (may later be extended
-     * to solve other types of problems?). This is a Singleton class that receives
-     * LinearProgram objects and returns LPSolution references. This solver
-     * will be following the Singleton design pattern, as it should not have
-     * state of its own.
-     *
-     * Version: 06/11/2014
-     * Author: Tyler Allen
-     * Author: Matthew Leeds
-     */
+/**
+ * This class is represents the entry point for a type of problem to be 
+ * solved. It is intended to provide a black-box approach to solving these 
+ * problems so that the user need not know specific details to have their
+ * problem solved. This class uses the Singleton Design Pattern, and with the 
+ * addition of more solving methods would be an implementation of the 
+ * builder pattern as well.
+ *
+ * Version: 06/11/2014
+ * Author: Tyler Allen
+ * Author: Matthew Leeds
+ */
 
 #ifndef SOLVER_H
 #define SOLVER_H

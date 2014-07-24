@@ -11,6 +11,18 @@
 #include "Solver.h"
 #include "Simplex.h"
 
+/**
+ * This function parses out the Linear Program from a string into a 
+ * LinearProgram object. This does minimal error checking and errors will 
+ * happen if the correct format is not followed! Please error check
+ * beforehand until this function is improved!
+ *
+ * Afterwards, the program is sent off to be solved by the appropriate Solver
+ * (currently only the simplex method is supported.)
+ *
+ * Param: problem - The Linear Program in string form.
+ * Return: The final solution.
+ */
 LPSolution* Solver::solve(std::string& problem)
 {
     size_t firstsemicolon = problem.find(";", 0);
@@ -50,30 +62,6 @@ LPSolution* Solver::solve(std::string& problem)
             #endif
         }
     }
-    /**
-    // Add each inequality constraint to the problem object.
-    if (secondsemicolon > firstsemicolon + 1)
-    {
-       while ((nextcomma = problem.find(",", lastcomma + 1)) < secondsemicolon)
-       {
-           lp->addLeqConstraint(
-             problem.substr(lastcomma + 1, nextcomma - lastcomma - 1));
-           std::cerr << "ineq: " << problem.substr(lastcomma+1, nextcomma-lastcomma-1) << std::endl;
-           lastcomma = nextcomma;
-       }
-    }
-    // Add each equality constraint to the problem object.
-    lastcomma = secondsemicolon;
-    if (thirdsemicolon > secondsemicolon + 1)
-    {
-       while ((nextcomma = problem.find(",", lastcomma + 1)) < thirdsemicolon)
-       {
-           lp->addEqConstraint(
-             problem.substr(lastcomma + 1, nextcomma - lastcomma - 1));
-           std::cerr << "eq: " << problem.substr(lastcomma + 1, nextcomma - lastcomma - 1) << std::endl;
-           lastcomma = nextcomma;
-       }
-    }*/
     LPSolution* sol = Simplex(lp).solve();
     delete lp;
     return sol;

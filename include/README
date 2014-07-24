@@ -1,0 +1,5 @@
+Note: During implementation we encounted some issues with templating. The .inl
+files contain the implementation for any methods that required concrete 
+implementations to be generated due to the template system. This files should 
+probably be in SRC, but currently live here. If you are looking for a function
+not defined in the src/.cpp file, it is probably here in an INL.

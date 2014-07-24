@@ -23,21 +23,20 @@ var xAxis;
 var yAxis;
 
 // simulation level variables
-var simData;
-var buttonFuncs;
-var colorArray;
-var color;
-var shape;
-var mode;
-var deviceID;
-var networkID;
-var currentColor;
-var filterColor;
-var maxRates;
-var instructions;
-var textBox;
+var buttonFuncs; // used to translate shapes to functions that make them
+var colorArray; // holds the names of each available color
+var color; // current color
+var shape; // the currently selected shape (circle or triangle)
+var mode; // the current mode
+var deviceID; // used to assign IDs to devices (device1, device2, etc.)
+var networkID; // used to assign IDs to networks (network1, network2, etc.)
+var maxRates; // holds the max achievable data rate for each network
+var instructions; // dictionary with instructions for each mode
+var textBox; // used to display instructions
 var alpha; // weight of aggregate throughput in the optimization
 var beta;  // weight of fairness in the optimization
+var sumRuaMax; // sum of the max achievable rates for every device-network pair
+var simData; // holds r_ua,max values for each device-network pair
 
 // constants
 var TRANSITION_DURATION = 500; // # of ms elements take to fade in or out
@@ -64,6 +63,8 @@ function main()
 
     canvas.append("g").attr("id", "layer1"); // to control ordering of elements
     canvas.append("g").attr("id", "layer2");
+    canvas.append("g").attr("id", "layer3");
+    canvas.append("g").attr("id", "layer4");
 
     textBox = canvas.select("#layer2")
                     .append("text")
@@ -97,13 +98,6 @@ function main()
     networkID = 0;
 
     backgroundColor = $("body").css("background-color");
-
-    canvas.on("mousemove", function()
-    {
-        $('#info').empty();
-        $('#info').append("<p> Location: (" + d3.mouse(this)[0].toFixed() +
-                          ", " + d3.mouse(this)[1].toFixed() + ")</p>");
-    });
 
     x = d3.scale.linear().range([0, w]);
     y = d3.scale.linear().range([h, 0]); 
@@ -183,11 +177,16 @@ function gatherData()
                                                      $(currentNetworkID).prop("cy").baseVal.value);
                     var radius = $(currentNetworkID).prop("r").baseVal.value;
                     if (distanceFromPoint < radius)
-                        deviceInfo[currentNetworkID] = (maxRates[currentNetworkID] * 
-                                                        Math.pow((1 - (distanceFromPoint / radius)), 2))
-                                                       .toFixed(6);
+                    {
+                        var ruaMax = maxRates[currentNetworkID] * 
+                                     Math.pow((1 - (distanceFromPoint / radius)), 2);
+                        sumRuaMax += ruaMax;
+                        deviceInfo[currentNetworkID] = ruaMax;
+                    }
                     else
+                    {
                         deviceInfo[currentNetworkID] = 0;
+                    }
                 }
             }
             simData[currentDeviceID] = deviceInfo;
@@ -206,21 +205,20 @@ function genCircle(svg, cx, cy, radius, newColor)
     var theColor = d3.rgb(newColor);
     networkID++;
     inputStr = prompt("Please enter the maximum possible bandwidth rate for " 
-                    + "this network as a positive integer (default 1000): ");
-    inputNum = ~~Number(inputStr);
-    if (String(inputNum) === inputStr && inputNum > 0)
-        maxRates["#network" + networkID] = inputNum;
+                    + "this network (default 1000): ");
+    if (parseFloat(inputStr) > 0)
+        maxRates["#network" + networkID] = parseFloat(inputStr);
     else
         maxRates["#network" + networkID] = 1000;
-    svg.append("circle")
-          .attr("id", "network" + networkID)
-          .attr("cx", cx)
-          .attr("cy", cy)
-          .attr("r", radius)
-          .attr("stroke", theColor.darker(.9))
-          .attr("stroke-width", radius / 10)
-          .attr("opacity", OPACITY_LEVEL)
-          .style("fill", theColor);
+    svg.select("#layer3").append("circle")
+                         .attr("id", "network" + networkID)
+                         .attr("cx", cx)
+                         .attr("cy", cy)
+                         .attr("r", radius)
+                         .attr("stroke", theColor.darker(.9))
+                         .attr("stroke-width", radius / 10)
+                         .attr("opacity", OPACITY_LEVEL)
+                         .style("fill", theColor);
 }
 
 
@@ -233,15 +231,15 @@ function genCircle(svg, cx, cy, radius, newColor)
 function genTriangle(svg, xCoord, yCoord, size, newColor)
 {
     deviceID++;
-    svg.append("path")
-          .attr("id", "device" + deviceID)
-          .attr("class", "point")
-          .style("fill", DEVICES_COLOR)
-          .attr("d", d3.svg.symbol().type("triangle-up"))
-          .attr("size", size)
-          .attr("transform", function() {
-              return "translate(" + xCoord + "," + yCoord + ")"; 
-              });
+    svg.select("#layer4").append("path")
+                         .attr("id", "device" + deviceID)
+                         .attr("class", "point")
+                         .style("fill", DEVICES_COLOR)
+                         .attr("d", d3.svg.symbol().type("triangle-up"))
+                         .attr("size", size)
+                         .attr("transform", function() {
+                             return "translate(" + xCoord + "," + yCoord + ")"; 
+                         });
 }
 
 /*
@@ -258,7 +256,7 @@ function changeText()
     textBox.transition()
            .style("opacity", 0)
            .duration(TRANSITION_DURATION)
-           .delay(3000)
+           .delay(3000) // show text for 3 seconds
            .text("");
 }
 
@@ -511,9 +509,9 @@ function updateFilter()
                 console.log("on " + switchID);
                 d3.selectAll("circle").filter( function()
                 {
-                    currentColor = d3.rgb(d3.select(this).style("fill"));
-                    filterColor = d3.rgb($(switchID).attr("value")
-                                                        .toLowerCase());
+                    var currentColor = d3.rgb(d3.select(this).style("fill"));
+                    var filterColor = d3.rgb($(switchID).attr("value")
+                                                    .toLowerCase());
                     if (currentColor.toString() == filterColor.toString())
                         return d3.select(this);
                 }).transition()
@@ -585,7 +583,7 @@ function optimize()
         return;
     }
 
-    // formulate the objective equation, alpha * sum(r_u) + beta * z
+    // formulate the objective equation, alpha * sum(r_u) + beta * sum(r_ua,max) * z
     var objEqn = "";
     for (var device in simData)
     {
@@ -607,7 +605,7 @@ function optimize()
             + "the system.");
         return;
     }
-    objEqn += String(beta);
+    objEqn += String(beta * numDevices);
     problemFormulation += objEqn + ";";
 
     // formulate constraints to ensure networks don't exceed max bandwidth
@@ -617,17 +615,51 @@ function optimize()
     {
         for (var j = 0; j < numDevices; j++)
         {
+            var currentDevice = simData[Object.keys(simData)[j]];
             for (var k = 0; k < numNetworks; k++)
             {
                 if (k == i)
-                    inequalities += "1 ";
+                    inequalities += String(currentDevice[Object.keys(currentDevice)[k]]) + " ";
                 else
                     inequalities += "0 ";
             }
         }
-        inequalities += "0 1,"; // 0 is z's coefficient, eqn must be <= 1
+        inequalities += "0 "; // z's coefficient
+        var currentNetworkID = "#network" + String(i + 1);
+        inequalities += String(maxRates[currentNetworkID]) + ",";
     }
    
+    // formulate constraints to ensure each x_ua <= 1 so devices don't exceed
+    // their potential bandwidth
+    var equalities = "";
+    for (var i = 0; i < numDevices * numNetworks; i++)
+    {
+        var assignmentConstraint = "";
+        for (var j = 0; j < numDevices; j++)
+        {
+            for (var k = 0; k < numNetworks; k++)
+            {
+                if ((numNetworks * j) + k == i)
+                    assignmentConstraint += "1 ";
+                else
+                    assignmentConstraint += "0 ";
+            }
+        }
+        var currentDeviceIndex = Math.floor(i / numNetworks);
+        var currentDevice = simData[Object.keys(simData)[currentDeviceIndex]];
+        var currentMax = currentDevice[Object.keys(currentDevice)[i % currentDeviceIndex]];
+        if (currentMax == 0)
+        {
+            assignmentConstraint += "0 0,";
+            equalities += assignmentConstraint; 
+        }
+        else
+        {
+            assignmentConstraint += "0 1,";
+            inequalities += assignmentConstraint;
+        }
+    }
+
     // formulate constraints to ensure z <= r_u for all devices
     for (var i = 0; i < numDevices; i++)
     {
@@ -649,7 +681,7 @@ function optimize()
         }
         inequalities += "1 0,"; // 1 is z's coefficient, eqn <= 0
     }
-    problemFormulation += inequalities + ";;";
+    problemFormulation += inequalities + ";" + equalities + ";";
     console.log(problemFormulation);
 
     $.ajax({

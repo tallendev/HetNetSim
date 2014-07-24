@@ -65,10 +65,10 @@ $\beta$ & User-defined scalar to control the importance of fairness. $0 \leq \be
 \item Solve the Linear Programming problem:
  
 \tab{maximize:}
-$$\alpha * \sum_{u \in U} r_u + \beta * z$$
+$$\alpha * \sum_{u \in U} r_u + \beta * z * \sum_{u \in U} r_{ua,max}$$
 \tab{subject to:}
 \begin{equation} \label{eq1}
-\sum_{u \in U} x_{ua} \leq 1 \ \ \forall a \in A
+\sum_{u \in U} r_{ua} \leq r_{a,max} \ \ \forall a \in A
 \end{equation}
 \begin{equation}
 0 \leq x_{ua} \leq 1 \ \ \forall u \in U, \forall a \in A

@@ -46,6 +46,23 @@ Solver Specification/Usage:
 
 
 
+Debugging:
+
+Assuming the correct system setup, all PHP error will go to the standard 
+PHP log in /var/log. All apache errors will go to /var/log/apache2. If any sort 
+of system error or segmentation fault were to happen during the process of 
+running the shared library, it would also be logged in /var/log/apache2/error.log
+In the Solver, we built in a debug mode which can be activated by uncommenting the 
+"DEBUG" variable in the makefile and recompiling the shared library. This will
+print a veriety of useful information such as matrix states. These files can 
+get rather large, however, and they significantly slow the solver, so they 
+should be disabled unless a problem is encountered. For large problems, enabling
+debug will actually cause PHP to hit its internal timeout and kill itself. In 
+the event of a segmentation fault a mock PHP script can be created and ran using
+the terminal. This will allow the use of valgrind or other tools to debug. 
+This will require the same setup as above in the php.ini file, except in 
+/etc/phpt5/cli/php.ini instead.
+
 
 This project was developed in the Summer of 2014, during the Clemson Data Intensive Computing REU by
 Tyler Allen of Western Carolina University and Matthew Leeds of The University

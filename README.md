@@ -47,7 +47,7 @@ post_max_size=1000M
 # Solver Specification/Usage:
 
 
-# www
+# www:
 
 The www directory contains all of the web content that we have created. 
 index.html, process.php, and everything contained in www/js and www/css are 

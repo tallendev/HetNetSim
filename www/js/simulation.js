@@ -1,6 +1,6 @@
 /*
  * File: simulation.js
- * Last Edit: 7/22/2014
+ * Last Edit: 7/25/2014
  * Author: Matthew Leeds
  * Author: Tyler Allen
  * Purpose: This script is the backend for the HetNet Simulation in index.html.
@@ -37,6 +37,8 @@ var alpha; // weight of aggregate throughput in the optimization
 var beta;  // weight of fairness in the optimization
 var sumRuaMax; // sum of the max achievable rates for every device-network pair
 var simData; // holds r_ua,max values for each device-network pair
+var numDevices; // these are useful when formulating the optimization problem,
+var numNetworks; // and making sense of the answer that's returned.
 
 // constants
 var TRANSITION_DURATION = 500; // # of ms elements take to fade in or out
@@ -66,7 +68,7 @@ function main()
     canvas.append("g").attr("id", "layer3");
     canvas.append("g").attr("id", "layer4");
 
-    textBox = canvas.select("#layer2")
+    textBox = canvas.select("#layer4")
                     .append("text")
                     .attr("x", w / 2)
                     .attr("y", 40)
@@ -159,13 +161,14 @@ function drawAxes() {
 function gatherData()
 {
     simData = {}; // will contain max data rates for every network-device pair
+    sumRuaMax = 0;
     for (var i = 1; i <= deviceID; i++)
     {
         var currentDeviceID = "#device" + i;
         if (!d3.select(currentDeviceID).empty()) // make sure it wasn't deleted
         {
             var deviceInfo = {}; // will contain max data rates for each network
-            var xforms = $(currentDeviceID).prop("transform").baseVal;
+            var xforms = $(currentDeviceID).parent().prop("transform").baseVal;
             for (var j = 1; j <= networkID; j++)
             {
                 var currentNetworkID = "#network" + j;
@@ -210,7 +213,8 @@ function genCircle(svg, cx, cy, radius, newColor)
         maxRates["#network" + networkID] = parseFloat(inputStr);
     else
         maxRates["#network" + networkID] = 1000;
-    svg.select("#layer3").append("circle")
+
+    svg.select("#layer2").append("circle")
                          .attr("id", "network" + networkID)
                          .attr("cx", cx)
                          .attr("cy", cy)
@@ -231,25 +235,34 @@ function genCircle(svg, cx, cy, radius, newColor)
 function genTriangle(svg, xCoord, yCoord, size, newColor)
 {
     deviceID++;
-    svg.select("#layer4").append("path")
-                         .attr("id", "device" + deviceID)
-                         .attr("class", "point")
-                         .style("fill", DEVICES_COLOR)
-                         .attr("d", d3.svg.symbol().type("triangle-up"))
-                         .attr("size", size)
-                         .attr("transform", function() {
-                             return "translate(" + xCoord + "," + yCoord + ")"; 
-                         });
+
+    // make a container to hold the triangle and text box
+    var thisLayer = svg.select("#layer3")
+                       .append("g") 
+                       .attr("id", "device" + deviceID + "container")
+                       .attr("transform", function() {
+                           return "translate(" + xCoord + "," + yCoord + ")";
+                       });
+    
+    // add the triangle element 
+    thisLayer.append("path")
+             .attr("id", "device" + deviceID)
+             .attr("class", "point")
+             .style("fill", DEVICES_COLOR)
+             .attr("d", d3.svg.symbol().type("triangle-up"))
+             .attr("size", size);
+    
+    // the text box will be added when the optimization happens
 }
 
 /*
  * changeText transitions the opacity of the text box and changes its text
  * based on the current mode.
  */
-function changeText()
+function changeText(textContent)
 {
     textBox.style("opacity", 0);
-    textBox.text(instructions[mode])
+    textBox.text(textContent)
            .transition()
            .style("opacity", 1)
            .duration(TRANSITION_DURATION);
@@ -302,7 +315,7 @@ function modeMove()
                                            .origin(circleOrigin)
                                            .on("drag", dragCircle));
     d3.selectAll("path").call(d3.behavior.drag()
-                                         .on("drag", dragPath));
+                                          .on("drag", dragPath));
 }
 
 
@@ -315,9 +328,10 @@ function modeDelete()
                               {
                                   d3.select(this).remove();
                               });
-    d3.selectAll("path").on("click", function()
+
+    d3.selectAll(".point").on("click", function()
                               {
-                                  d3.select(this).remove();
+                                  d3.select(this.parentNode).remove();
                               });
 }
 
@@ -334,6 +348,11 @@ function modeFilter()
 }
 
 
+/*
+ * modeOptimize shows the optimization options and calls the functions
+ * that collect data about the distances between each device-network pair
+ * and make sure the user-defined weights are recorded internally.
+ */
 function modeOptimize()
 {
     $('#optimization').show();
@@ -356,6 +375,7 @@ function changeMode()
     $('#optimization').hide();
     showAll(); // shows all elements (circles and triangles)
     removeBehaviors(); // disables click and drag behaviors
+    removeTextBoxes(); // removes any text boxes from optimizations
 
     switch (mode)
     {
@@ -391,7 +411,7 @@ function changeMode()
         }
     }
 
-    changeText();
+    changeText(instructions[mode]);
 }
 
 
@@ -460,13 +480,19 @@ function dragCircle()
 
 /*
  * dragPath is used to move paths (triangles in this case), using the 
- * transform attribute.
+ * transform attribute. The parent element, an svg:g container, is the 
+ * one that needs to move so the text box moves with it.
  */
 function dragPath()
 {
-    d3.select(this).attr("transform", function()
+    var thisID = d3.select(this).attr("id");
+    var startX = $(this).parent().prop("transform").baseVal.getItem(0).matrix.e;
+    var startY = $(this).parent().prop("transform").baseVal.getItem(0).matrix.f;
+    d3.select("#" + thisID + "container").attr("transform", function()
     {
-        return "translate(" + d3.event.x + "," + d3.event.y + ")";
+        var moveX = d3.event.x + startX;
+        var moveY = d3.event.y + startY;
+        return "translate(" + moveX + "," + moveY + ")";
     });
 }
 
@@ -482,7 +508,6 @@ function dragPath()
  */
 function updateFilter()
 {
-    console.log("updateFilter()");
     showAll();
     if (mode === "Filter")
     {
@@ -498,8 +523,11 @@ function updateFilter()
         if (!$('#switch2').prop('checked'))
         {
             d3.selectAll("path").transition()
-                                .style("fill", backgroundColor)
-                                .duration(TRANSITION_DURATION);
+                                .style("opacity", 0)
+                                .duration(TRANSITION_DURATION)
+                                .transition()
+                                .style("visibility", "hidden")
+                                .duration(0);
         }
         for (var i = 0; i < colorArray.length; i++)
         {
@@ -534,8 +562,11 @@ function showAll()
                           .duration(TRANSITION_DURATION)
                           .style("visibility", "visible");
     d3.selectAll("path").transition()
-                        .style("fill", DEVICES_COLOR)
-                        .duration(TRANSITION_DURATION);
+                        .style("opacity", 1)
+                        .duration(TRANSITION_DURATION)
+                        .transition() // so they disappear immediately the first time
+                        .style("visibility", "visible")
+                        .duration(0);
 }
 
 
@@ -549,7 +580,31 @@ function removeBehaviors()
     d3.selectAll("circle").call(d3.behavior.drag().on("drag", null));
     d3.selectAll("path").call(d3.behavior.drag().on("drag", null));
     d3.selectAll("circle").on("click", null);
-    d3.selectAll("path").on("click", null);
+    d3.selectAll("path").on("click", null)
+                        .on("mouseover", null)
+                        .on("mouseout", null);
+}
+
+
+/*
+ * removeTextBoxes is called whenever the mode changes to make sure the 
+ * text boxes that hold network allocations from optimization don't persist
+ * when the user changes back to another mode.
+ */
+function removeTextBoxes()
+{
+    for (var i = 1; i <= deviceID; i++)
+    {
+        var currentDeviceID = "#device" + i;
+        if (!d3.select(currentDeviceID).empty())
+        {
+            if ($(currentDeviceID).siblings().length > 0) 
+            {
+                d3.select(currentDeviceID).node().nextSibling.remove(); // rect
+                d3.select(currentDeviceID).node().nextSibling.remove(); // text
+            }
+        }
+    }
 }
 
 
@@ -569,13 +624,15 @@ function updateParams()
 /*
  * optimize uses the values of alpha and beta, and the data in simData to 
  * form a linear programming problem to optimize the system. Then it calls 
- * the LPSolver written in C++ using a shared library. The format for the 
- * problem passed to the solver is: "objeqn;ineq,ineq,;eq,eq,;".
+ * the LPSolver written in C++ using a shared library available to PHP on
+ * the server side. The format for the problem passed to the solver is: 
+ * "objeqn;ineq,ineq,;eq,eq,;" where equations are numbers (coefficients) 
+ * separated by spaces.
  */
 function optimize()
 {
     var problemFormulation = "";
-    var numDevices = Object.keys(simData).length;
+    numDevices = Object.keys(simData).length; // not always equal to deviceID
     if (numDevices == 0)
     {
         alert("Please add networks and devices before attempting to optimize "
@@ -605,12 +662,12 @@ function optimize()
             + "the system.");
         return;
     }
-    objEqn += String(beta * numDevices);
+    objEqn += String(beta * sumRuaMax);
     problemFormulation += objEqn + ";";
 
     // formulate constraints to ensure networks don't exceed max bandwidth
     var inequalities = "";
-    var numNetworks = Object.keys(simData[Object.keys(simData)[0]]).length;
+    numNetworks = Object.keys(simData[Object.keys(simData)[0]]).length;
     for (var i = 0; i < numNetworks; i++)
     {
         for (var j = 0; j < numDevices; j++)
@@ -684,6 +741,7 @@ function optimize()
     problemFormulation += inequalities + ";" + equalities + ";";
     console.log(problemFormulation);
 
+    // make an AJAX POST to the server with the problem information
     $.ajax({
         type     : 'POST',
         url      : 'process.php',
@@ -691,14 +749,112 @@ function optimize()
         dataType : 'json',
         success  : function(data) {
             if (data.success) {
-                alert(data.answer);
-                //TODO: represent the solution visually
+                console.log(data.answer);
+                visualSolution(data.answer);
+                changeText("Hover over devices to see their assigned "
+                         + "allocations for each network.");
             } else {
                 console.log("POST in function 'optimize()' failed.");
             }
         }
     });
 }
+
+
+/*
+ * visualSolution takes the string returned by the Linear Programming solver
+ * that has the optimal values of all the decision variables, calculates 
+ * effective data transfer rates by multiplying each assignment value by
+ * that devices maximum achievable rate, and puts these rates into the 
+ * text boxes associated with each device.
+ */
+function visualSolution(solutionString)
+{
+    // account for the answer's quirky formatting
+    var start = solutionString.indexOf('>') + 17;
+    solutionString = solutionString.substr(start, solutionString.length - start - 2);
+    var answerValues = solutionString.split(' ');
+    console.log(answerValues);
+    var lineHeight = 20;
+    var textBoxHeight = (numNetworks + 1) * lineHeight;
+    var textBoxWidth = 180;
+    var foundDevices = 0; // so indexes aren't wrong when devices are deleted
+    for (var i = 0; i < deviceID; i++)
+    {
+        var currentDeviceID = "#device" + String(i + 1);
+        if (!d3.select(currentDeviceID).empty()) // make sure it wasn't deleted
+        {
+            foundDevices++;
+            var thisContainer = d3.select(currentDeviceID + "container");
+
+            // add a box as a background for the text
+            thisContainer.select("rect").remove();
+            thisContainer.append("rect")
+                         .attr("id", currentDeviceID.substr(1) + "rect")
+                         .attr("width", textBoxWidth)
+                         .attr("height", textBoxHeight)
+                         .attr("x", 5)
+                         .attr("y", -textBoxHeight)
+                         .attr("rx", 10)
+                         .attr("ry", 10)
+                         .style("fill", "lightsteelblue")
+                         .style("opacity", 0);
+            
+            // add a text element to display network rate assignments
+            thisContainer.select("text").remove();
+            thisContainer.append("text")
+                         .attr("id", currentDeviceID.substr(1) + "text")
+                         .attr("fill", "black")
+                         .attr("text-anchor", "left")
+                         .attr("font-size", "15px")
+                         .style("opacity", 0);
+            
+            // text boxes should only appear when you hover over that device       
+            d3.select(currentDeviceID).on("mouseover", function() {
+                                            d3.select(this.nextSibling)
+                                            .transition()
+                                            .style("opacity", 1)
+                                            .duration(200);
+                                            d3.select(this.nextSibling.nextSibling)
+                                            .transition()
+                                            .style("opacity", 1)
+                                            .duration(200);
+                                          })
+                                      .on("mouseout", function() {
+                                            d3.select(this.nextSibling)
+                                            .transition()
+                                            .style("opacity", 0)
+                                            .duration(200);
+                                            d3.select(this.nextSibling.nextSibling)
+                                            .transition()
+                                            .style("opacity", 0)
+                                            .duration(200);
+                                          });
+            
+            var deviceInfo = simData[currentDeviceID]; // get r_ua,max values
+            var foundNetworks = 0; // so text is spaced regardless of deleted networks
+            for (var j = 0; j < networkID; j++)
+            {
+                var currentNetworkID = "#network" + String(j + 1);
+                if (!d3.select(currentNetworkID).empty()) // it wasn't deleted
+                {
+                    foundNetworks++;
+                    var answerIndex = ((foundDevices - 1) * numNetworks) + (foundNetworks - 1);
+                    var assignedRate = answerValues[answerIndex] * deviceInfo[currentNetworkID];
+                    var yOffset = (lineHeight * foundNetworks) - textBoxHeight;
+                    d3.select(currentDeviceID + "text").append("tspan")
+                                                       .attr("x", 0)
+                                                       .attr("dx", lineHeight + "px")
+                                                       .attr("y", 0)
+                                                       .attr("dy", yOffset + "px")
+                                                       .text(currentNetworkID.substr(1) + ": " + 
+                                                             assignedRate.toFixed(3));
+                }
+            }
+        }
+    }
+}
+
 
 // When the page loads, open the sidebar.
 $(document).ready(function() {

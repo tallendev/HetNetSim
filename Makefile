@@ -46,7 +46,7 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(CPPEXT)
 	-$(CC) $(INCLUDE) $(shell php-config --includes) -c $(CFLAGS) $(DEBUG) $< -o $@
 
 install:
-	#@cp www/* /var/www/
+	@cp -r www/* /var/www/
 	@cp lib/solver.so $(shell php-config --extension-dir)
 
 clean:

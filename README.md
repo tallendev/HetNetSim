@@ -48,7 +48,7 @@ post_max_size=1000M
 #
 All Solve requests are handled through the Solver class. They follow the format:
 
-"<objective equation>;<inequality constraint...>,;<equality constraint...>;"
+"\<objective equation\>;\<inequality constraint...\>,;\<equality constraint...\>;"
 
 Where there is a single objective equation, and any number of trailing 
 inequality and equality constraints. Each term in a given constrain/objective 

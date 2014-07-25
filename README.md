@@ -43,6 +43,11 @@ to increase it dynamically:
 
 post_max_size=1000M
 
+Additionally, there is a memory limit for PHP programs. This can be adjusted 
+via this setting in the configuration:
+
+memory_limit = 1280M
+
 
 # Solver Specification/Usage:
 #

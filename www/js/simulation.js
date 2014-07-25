@@ -481,7 +481,7 @@ function dragCircle()
 /*
  * dragPath is used to move paths (triangles in this case), using the 
  * transform attribute. The parent element, an svg:g container, is the 
- * one that needs to move so the text box moves with it.
+ * one that needs to move so the text box will be in the right place.
  */
 function dragPath()
 {
@@ -531,6 +531,7 @@ function updateFilter()
         }
         for (var i = 0; i < colorArray.length; i++)
         {
+            // remove leading zero
             var switchID = '#switch' + (i+3).toString().replace(/^[0]+/g,"");
             if (!$(switchID).prop('checked'))
             {
@@ -751,6 +752,7 @@ function optimize()
             if (data.success) {
                 console.log(data.answer);
                 visualSolution(data.answer);
+                animateTextBoxes();
                 changeText("Hover over devices to see their assigned "
                          + "allocations for each network.");
             } else {
@@ -798,7 +800,8 @@ function visualSolution(solutionString)
                          .attr("rx", 10)
                          .attr("ry", 10)
                          .style("fill", "lightsteelblue")
-                         .style("opacity", 0);
+                         .style("opacity", 0)
+                         .style("visibility", "hidden");
             
             // add a text element to display network rate assignments
             thisContainer.select("text").remove();
@@ -807,29 +810,8 @@ function visualSolution(solutionString)
                          .attr("fill", "black")
                          .attr("text-anchor", "left")
                          .attr("font-size", "15px")
-                         .style("opacity", 0);
-            
-            // text boxes should only appear when you hover over that device       
-            d3.select(currentDeviceID).on("mouseover", function() {
-                                            d3.select(this.nextSibling)
-                                            .transition()
-                                            .style("opacity", 1)
-                                            .duration(200);
-                                            d3.select(this.nextSibling.nextSibling)
-                                            .transition()
-                                            .style("opacity", 1)
-                                            .duration(200);
-                                          })
-                                      .on("mouseout", function() {
-                                            d3.select(this.nextSibling)
-                                            .transition()
-                                            .style("opacity", 0)
-                                            .duration(200);
-                                            d3.select(this.nextSibling.nextSibling)
-                                            .transition()
-                                            .style("opacity", 0)
-                                            .duration(200);
-                                          });
+                         .style("opacity", 0)
+                         .style("visibility", "hidden");
             
             var deviceInfo = simData[currentDeviceID]; // get r_ua,max values
             var foundNetworks = 0; // so text is spaced regardless of deleted networks
@@ -851,6 +833,67 @@ function visualSolution(solutionString)
                                                              assignedRate.toFixed(3));
                 }
             }
+        }
+    }
+}
+
+
+/*
+ * animateTextBoxes makes the text boxes smoothly appear when you hover over
+ * devices and disappear when your cursor leaves the device. It also moves the
+ * g container element to the front of the layer so other devices don't 
+ * appear in front of a text box.
+ */
+function animateTextBoxes()
+{
+    for (var i = 0; i < deviceID; i++)
+    {
+        var currentDeviceID = "#device" + String(i + 1);
+        if (!d3.select(currentDeviceID).empty()) // make sure it wasn't deleted
+        {
+            // Text boxes should only appear when you hover over that device.
+            // If you don't change the visibility attribute, sometimes they
+            // don't show up.       
+            d3.select(currentDeviceID).on("mouseover", function() {
+                                            // move the parent g element to the front
+                                            d3.select(this.parentNode).node()
+                                                          .parentNode
+                                                          .appendChild(this.parentNode);
+                                            // transition rect to full opacity
+                                            d3.select(this.nextSibling)
+                                            .transition()
+                                            .style("opacity", 1)
+                                            .duration(200)
+                                            .transition()
+                                            .style("visibility", "visible")
+                                            .duration(0);
+                                            // transition text to full opacity
+                                            d3.select(this.nextSibling.nextSibling)
+                                            .transition()
+                                            .style("opacity", 1)
+                                            .duration(200)
+                                            .transition()
+                                            .style("visibility", "visible")
+                                            .duration(0);
+                                          })
+                                      .on("mouseout", function() {
+                                            // transition rect to 0 opacity
+                                            d3.select(this.nextSibling)
+                                            .transition()
+                                            .style("opacity", 0)
+                                            .duration(200)
+                                            .transition()
+                                            .style("visibility", "hidden")
+                                            .duration(0);
+                                            // transition text to 0 opacity
+                                            d3.select(this.nextSibling.nextSibling)
+                                            .transition()
+                                            .style("opacity", 0)
+                                            .duration(200)
+                                            .transition()
+                                            .style("visibility", "hidden")
+                                            .duration(0);
+                                          });
         }
     }
 }

@@ -45,6 +45,24 @@ post_max_size=1000M
 
 
 # Solver Specification/Usage:
+#
+All Solve requests are handled through the Solver class. They follow the format:
+
+"<objective equation>;<inequality constraint...>,;<equality constraint...>;"
+
+Where there is a single objective equation, and any number of trailing 
+inequality and equality constraints. Each term in a given constrain/objective 
+equation is delimited by spaces. Each constraint of the same type is delimited
+by a single comma. Types of constraints/objective equation are seperated 
+by semicolon. The terms need only be a coefficient - the variable name must not 
+be included in the string. If there are none of a type of constraint, no input
+is required in that field but the semicolon is still required.
+ The Solver currently does little to no error checking - the 
+behavior with a malformed linear program string is currently undefined.
+
+Example:
+
+5 4 3;1 1 1,;;
 
 
 # www:
